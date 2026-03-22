@@ -21,15 +21,39 @@ def enrich(auction: Auction) -> AuctionResponse:
 def list_auctions(
     status: Optional[str] = None,
     category_id: Optional[int] = None,
+    subcategory_id: Optional[int] = None,
     search: Optional[str] = None,
+    min_price: Optional[float] = None,
+    max_price: Optional[float] = None,
+    sort_by: Optional[str] = None,   # "ending_soon" | "most_bids" | "newest" | "price_asc" | "price_desc"
     db: Session = Depends(get_db),
 ):
     _sync_statuses(db)
     query = db.query(Auction).join(Auction.product)
-    if status:      query = query.filter(Auction.status == status)
-    if category_id: query = query.filter(Product.category_id == category_id)
-    if search:      query = query.filter(Product.title.ilike(f"%{search}%"))
-    return [enrich(a) for a in query.order_by(Auction.start_date.desc()).all()]
+    if status:         query = query.filter(Auction.status == status)
+    if category_id:    query = query.filter(Product.category_id == category_id)
+    if subcategory_id: query = query.filter(Product.subcategory_id == subcategory_id)
+    if search:         query = query.filter(Product.title.ilike(f"%{search}%"))
+    if min_price:      query = query.filter(Product.current_price >= min_price)
+    if max_price:      query = query.filter(Product.current_price <= max_price)
+
+    auctions = query.all()
+    enriched = [enrich(a) for a in auctions]
+
+    if sort_by == "ending_soon":
+        enriched.sort(key=lambda a: a.end_date)
+    elif sort_by == "most_bids":
+        enriched.sort(key=lambda a: a.bid_count or 0, reverse=True)
+    elif sort_by == "newest":
+        enriched.sort(key=lambda a: a.created_at, reverse=True)
+    elif sort_by == "price_asc":
+        enriched.sort(key=lambda a: a.product.current_price)
+    elif sort_by == "price_desc":
+        enriched.sort(key=lambda a: a.product.current_price, reverse=True)
+    else:
+        enriched.sort(key=lambda a: a.start_date, reverse=True)
+
+    return enriched
 
 
 @router.get("/{auction_id}", response_model=AuctionResponse)

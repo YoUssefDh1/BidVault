@@ -62,6 +62,41 @@ categories_data = [
             "Residential", "Commercial", "Land", "Vacation Properties"
         ]
     },
+    {
+        "name": "Books & Manuscripts",
+        "description": "Rare books, first editions, manuscripts, and printed works",
+        "subcategories": [
+            "First Editions", "Manuscripts", "Maps & Atlases", "Illustrated Books", "Signed Copies"
+        ]
+    },
+    {
+        "name": "Wine & Spirits",
+        "description": "Fine wines, rare spirits, and cellar collections",
+        "subcategories": [
+            "Red Wine", "White Wine", "Champagne & Sparkling", "Whisky", "Cognac & Brandy", "Rare Spirits"
+        ]
+    },
+    {
+        "name": "Musical Instruments",
+        "description": "Vintage and professional instruments from all genres",
+        "subcategories": [
+            "Guitars", "Pianos & Keyboards", "Violins & Strings", "Wind Instruments", "Drums & Percussion", "Signed Instruments"
+        ]
+    },
+    {
+        "name": "Gaming & Consoles",
+        "description": "Vintage and modern gaming hardware, games, and memorabilia",
+        "subcategories": [
+            "Retro Consoles", "Modern Consoles", "Handheld Devices", "Video Games", "Gaming Memorabilia", "Arcade Machines"
+        ]
+    },
+    {
+        "name": "Photography Equipment",
+        "description": "Cameras, lenses, and photographic accessories",
+        "subcategories": [
+            "Film Cameras", "Digital Cameras", "Lenses", "Vintage Cameras", "Darkroom Equipment", "Camera Accessories"
+        ]
+    },
 ]
 
 added = 0

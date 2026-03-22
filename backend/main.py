@@ -10,6 +10,7 @@ from routers import products as products_router
 from routers import auctions as auctions_router
 from routers import bids as bids_router
 from routers import admin as admin_router
+from routers import users as users_router
 
 # Create all DB tables on startup
 Base.metadata.create_all(bind=engine)
@@ -42,6 +43,7 @@ app.include_router(products_router.router,   prefix="/products",   tags=["Produc
 app.include_router(auctions_router.router,   prefix="/auctions",   tags=["Auctions"])
 app.include_router(bids_router.router,       prefix="/bids",       tags=["Bids"])
 app.include_router(admin_router.router,      prefix="/admin",      tags=["Admin"])
+app.include_router(users_router.router,      prefix="/users",      tags=["Users"])
 
 
 @app.get("/")

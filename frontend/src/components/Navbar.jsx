@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import AuthModal from "./AuthModal";
+import AuthNudge from "./AuthNudge";
 
 export default function Navbar() {
   const { token, role, user, logout } = useAuthStore();
@@ -9,6 +11,7 @@ export default function Navbar() {
   const location = useLocation();
   const isActive = (path) => location.pathname === path;
 
+  const [authModal, setAuthModal]      = useState(null); // "login" | "register" | null
   const [search, setSearch]           = useState("");
   const [focused, setFocused]         = useState(false);
   const [suggestions, setSuggestions] = useState([]);
@@ -226,51 +229,32 @@ export default function Navbar() {
         {/* Right Auth */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           {token ? (
-            <>
-              <Link to="/profile" style={{ textDecoration: "none" }}>
-                <div style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "5px 12px", border: "1px solid var(--border-2)",
-                  borderRadius: 2, cursor: "pointer", transition: "border-color 0.15s",
-                }}>
-                  <div style={{
-                    width: 26, height: 26, borderRadius: "50%",
-                    background: "var(--lime)", display: "flex", alignItems: "center",
-                    justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif",
-                    fontWeight: 900, fontSize: "0.8rem", color: "#000",
-                  }}>
-                    {user?.name?.[0]?.toUpperCase() || "U"}
-                  </div>
-                  <div>
-                    <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.2 }}>
-                      {user?.name || user?.email}
-                    </div>
-                    <div style={{
-                      fontSize: "0.65rem", color: "var(--lime)",
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      textTransform: "uppercase", letterSpacing: "0.1em",
-                    }}>{role}</div>
-                  </div>
-                </div>
-              </Link>
-              <button className="btn-ghost" onClick={() => { logout(); navigate("/"); }}
-                style={{ padding: "6px 14px", fontSize: "0.78rem" }}>
-                Logout
-              </button>
-            </>
+            <ProfileDropdown user={user} role={role} onLogout={() => { logout(); navigate("/"); }} navigate={navigate} />
           ) : (
             <>
-              <Link to="/login">
-                <button className="btn-ghost" style={{ padding: "7px 18px" }}>Login</button>
-              </Link>
-              <Link to="/register">
-                <button className="btn-primary" style={{ padding: "7px 20px" }}>Register</button>
-              </Link>
+              <button className="btn-ghost"
+                onClick={() => setAuthModal("login")}
+                style={{ padding: "7px 18px" }}>Login</button>
+              <button className="btn-primary"
+                onClick={() => setAuthModal("register")}
+                style={{ padding: "7px 20px" }}>Register</button>
             </>
           )}
         </div>
 
       </div>
+
+      {/* Auth Modal */}
+      {authModal && (
+        <AuthModal mode={authModal} onClose={() => setAuthModal(null)} />
+      )}
+
+      {/* Auth Nudge — bottom left for guests */}
+      <AuthNudge
+        onLogin={() => setAuthModal("login")}
+        onRegister={() => setAuthModal("register")}
+      />
+
     </nav>
   );
 }
@@ -288,5 +272,131 @@ function highlightMatch(text, query) {
       </span>
       {text.slice(idx + query.length)}
     </>
+  );
+}
+
+// ── Profile Dropdown ──────────────────────────────────────────
+function ProfileDropdown({ user, role, onLogout, navigate }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const go = (path, tab) => {
+    setOpen(false);
+    navigate(tab ? `${path}?tab=${tab}` : path);
+  };
+
+  const menuItems = [
+    { label: "My Bids",        icon: "🏷", tab: "bids" },
+    { label: "My Listings",    icon: "📦", tab: "listings" },
+    { label: "Won Auctions",   icon: "🏆", tab: "wins" },
+    { label: "Edit Profile",   icon: "⚙️", tab: "account" },
+  ];
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+
+      {/* Trigger */}
+      <div onClick={() => setOpen(o => !o)} style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "5px 12px", border: `1px solid ${open ? "var(--lime)" : "var(--border-2)"}`,
+        borderRadius: 2, cursor: "pointer", transition: "border-color 0.15s",
+        userSelect: "none",
+      }}>
+        <div style={{
+          width: 26, height: 26, borderRadius: "50%",
+          background: "var(--lime)", display: "flex", alignItems: "center",
+          justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 900, fontSize: "0.8rem", color: "#000", flexShrink: 0,
+        }}>
+          {user?.name?.[0]?.toUpperCase() || "U"}
+        </div>
+        <div>
+          <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.2 }}>
+            {user?.name || user?.email}
+          </div>
+          <div style={{
+            fontSize: "0.62rem", color: "var(--lime)",
+            fontFamily: "'Barlow Condensed', sans-serif",
+            textTransform: "uppercase", letterSpacing: "0.1em",
+          }}>{role}</div>
+        </div>
+        <span style={{
+          fontSize: "1.4rem", color: "var(--lime)",
+          marginLeft: 4,
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
+          transform: open ? "rotate(270deg)" : "rotate(90deg)",
+          transition: "transform 0.2s",
+          display: "inline-block", lineHeight: 1,
+        }}>›</span>
+      </div>
+
+      {/* Dropdown */}
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 8px)", right: 0,
+          width: 220, zIndex: 200,
+          background: "var(--surface)",
+          border: "1px solid var(--border-2)",
+          borderRadius: 4,
+          boxShadow: "0 16px 48px rgba(0,0,0,0.6)",
+          overflow: "hidden",
+          animation: "fadeUp 0.15s ease forwards",
+        }}>
+
+          {/* User header */}
+          <div style={{
+            padding: "14px 16px",
+            borderBottom: "1px solid var(--border)",
+            background: "var(--surface-2)",
+          }}>
+            <div style={{ fontWeight: 700, fontSize: "0.9rem", marginBottom: 2 }}>
+              {user?.name}
+            </div>
+            <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+              {user?.email}
+            </div>
+          </div>
+
+          {/* Menu items */}
+          <div style={{ padding: "6px 0" }}>
+            {menuItems.map(({ label, icon, tab }) => (
+              <div key={tab} onClick={() => go("/profile", tab)} style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "9px 16px", cursor: "pointer",
+                transition: "background 0.1s",
+              }}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--surface-2)"}
+                onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              >
+                <span style={{ fontSize: "0.9rem", width: 18, textAlign: "center" }}>{icon}</span>
+                <span style={{ fontSize: "0.85rem", color: "var(--text-2)" }}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Sign out */}
+          <div style={{ borderTop: "1px solid var(--border)", padding: "6px 0" }}>
+            <div onClick={() => { setOpen(false); onLogout(); }} style={{
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "9px 16px", cursor: "pointer",
+              transition: "background 0.1s",
+            }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,68,68,0.06)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <span style={{ fontSize: "0.9rem", width: 18, textAlign: "center" }}>↩</span>
+              <span style={{ fontSize: "0.85rem", color: "var(--danger)" }}>Sign out</span>
+            </div>
+          </div>
+
+        </div>
+      )}
+    </div>
   );
 }

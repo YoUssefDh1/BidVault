@@ -105,9 +105,20 @@ export default function AuctionList() {
   const [loading, setLoading]     = useState(true);
 
   // All filter state lives in the URL — derive from it
-  const search         = searchParams.get("search")      || "";
-  const statusFilter   = searchParams.get("status")      || "";
-  const categoryFilter = searchParams.get("category_id") || "";
+  const search            = searchParams.get("search")         || "";
+  const statusFilter      = searchParams.get("status")         || "";
+  const categoryFilter    = searchParams.get("category_id")    || "";
+  const subcategoryFilter = searchParams.get("subcategory_id") || "";
+  const sortBy            = searchParams.get("sort_by")        || "";
+  const minPrice          = searchParams.get("min_price")      || "";
+  const maxPrice          = searchParams.get("max_price")      || "";
+
+  // Local price inputs (only applied on blur/enter)
+  const [minInput, setMinInput] = useState(minPrice);
+  const [maxInput, setMaxInput] = useState(maxPrice);
+
+  // Active category object (for subcategories)
+  const activeCat = categories.find(c => c.id?.toString() === categoryFilter) || null;
 
   const setFilter = (key, value) => {
     setSearchParams(prev => {
@@ -127,13 +138,17 @@ export default function AuctionList() {
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (search)         params.append("search",      search);
-    if (statusFilter)   params.append("status",      statusFilter);
-    if (categoryFilter) params.append("category_id", categoryFilter);
+    if (search)            params.append("search",         search);
+    if (statusFilter)      params.append("status",         statusFilter);
+    if (categoryFilter)    params.append("category_id",    categoryFilter);
+    if (subcategoryFilter) params.append("subcategory_id", subcategoryFilter);
+    if (minPrice)          params.append("min_price",      minPrice);
+    if (maxPrice)          params.append("max_price",      maxPrice);
+    if (sortBy)            params.append("sort_by",        sortBy);
     api.get(`/auctions?${params}`)
       .then(({ data }) => setAuctions(data))
       .finally(() => setLoading(false));
-  }, [search, statusFilter, categoryFilter]);
+  }, [search, statusFilter, categoryFilter, subcategoryFilter, minPrice, maxPrice, sortBy]);
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px" }}>
@@ -144,15 +159,17 @@ export default function AuctionList() {
         padding: "28px 0 20px", borderBottom: "1px solid var(--border)",
       }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 900 }}>
-          Trending Lots
+          {search ? `Results for "${search}"` : "Trending Lots"}
           <span style={{ fontSize: "1rem", color: "var(--muted)", marginLeft: 14, fontFamily: "'Barlow', sans-serif", fontWeight: 400, textTransform: "none" }}>
             {auctions.length} results
           </span>
         </h1>
-        <input className="input" placeholder="Search lots..."
-          value={search}
-          onChange={(e) => setFilter("search", e.target.value)}
-          style={{ width: 240, padding: "8px 14px" }} />
+        {search && (
+          <button className="btn-ghost" onClick={() => setFilter("search", "")}
+            style={{ fontSize: "0.78rem", padding: "7px 16px" }}>
+            ✕ Clear search
+          </button>
+        )}
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 0 }}>
@@ -175,22 +192,56 @@ export default function AuctionList() {
               const val = c.id?.toString() || "";
               const active = categoryFilter === val;
               return (
-                <div key={val} onClick={() => setFilter("category_id", val)}
-                  style={{
-                    padding: "6px 0", fontSize: "0.85rem",
-                    color: active ? "var(--lime)" : "var(--text-2)",
-                    cursor: "pointer", fontWeight: active ? 600 : 400,
-                    borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
-                    paddingLeft: 10, transition: "all 0.15s",
-                  }}>
+                <div key={val} onClick={() => {
+                  setSearchParams(prev => {
+                    const next = new URLSearchParams(prev);
+                    if (val) next.set("category_id", val); else next.delete("category_id");
+                    next.delete("subcategory_id"); // reset subcategory when switching category
+                    return next;
+                  });
+                }} style={{
+                  padding: "6px 0", fontSize: "0.85rem",
+                  color: active ? "var(--lime)" : "var(--text-2)",
+                  cursor: "pointer", fontWeight: active ? 600 : 400,
+                  borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                  paddingLeft: 10, transition: "all 0.15s",
+                }}>
                   {c.name}
                 </div>
               );
             })}
           </div>
 
+          {/* Subcategories — shown when a category is active */}
+          {activeCat?.subcategories?.length > 0 && (
+            <div style={{ marginBottom: 32 }}>
+              <div style={{
+                fontSize: "0.68rem", color: "var(--muted)",
+                fontFamily: "'Barlow Condensed', sans-serif",
+                letterSpacing: "0.12em", textTransform: "uppercase",
+                marginBottom: 12, fontWeight: 700,
+              }}>{activeCat.name}</div>
+              {[{ id: "", name: "All" }, ...activeCat.subcategories].map((s) => {
+                const val = s.id?.toString() || "";
+                const active = subcategoryFilter === val;
+                return (
+                  <div key={val} onClick={() => setFilter("subcategory_id", val)}
+                    style={{
+                      padding: "5px 0", fontSize: "0.82rem",
+                      color: active ? "var(--lime)" : "var(--muted)",
+                      cursor: "pointer", fontWeight: active ? 600 : 400,
+                      borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                      paddingLeft: 10, transition: "all 0.15s",
+                    }}>
+                    {s.name}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
           {/* Status */}
-          <div>
+          <div style={{ marginBottom: 32 }}>
             <div style={{
               fontSize: "0.68rem", color: "var(--muted)",
               fontFamily: "'Barlow Condensed', sans-serif",
@@ -225,10 +276,78 @@ export default function AuctionList() {
             })}
           </div>
 
-          {(search || statusFilter || categoryFilter) && (
-            <button onClick={clearFilters}
-              className="btn-ghost" style={{ marginTop: 24, width: "100%", fontSize: "0.75rem", padding: "7px" }}>
-              Clear Filters
+          {/* Sort By */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{
+              fontSize: "0.68rem", color: "var(--muted)",
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              marginBottom: 12, fontWeight: 700,
+            }}>Sort By</div>
+            {[
+              { value: "",             label: "Default" },
+              { value: "ending_soon",  label: "⏳ Ending Soon" },
+              { value: "most_bids",    label: "🔥 Most Bids" },
+              { value: "newest",       label: "✨ Newly Listed" },
+              { value: "price_asc",    label: "↑ Price: Low to High" },
+              { value: "price_desc",   label: "↓ Price: High to Low" },
+            ].map(({ value, label }) => {
+              const active = sortBy === value;
+              return (
+                <div key={value} onClick={() => setFilter("sort_by", value)}
+                  style={{
+                    padding: "5px 0 5px 10px", fontSize: "0.82rem", cursor: "pointer",
+                    color: active ? "var(--lime)" : "var(--muted)",
+                    fontWeight: active ? 600 : 400,
+                    borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                    transition: "all 0.15s",
+                  }}>
+                  {label}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Price Range */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{
+              fontSize: "0.68rem", color: "var(--muted)",
+              fontFamily: "'Barlow Condensed', sans-serif",
+              letterSpacing: "0.12em", textTransform: "uppercase",
+              marginBottom: 12, fontWeight: 700,
+            }}>Price Range ($)</div>
+            <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+              <input
+                className="input"
+                type="number" placeholder="Min"
+                value={minInput}
+                onChange={e => setMinInput(e.target.value)}
+                onBlur={() => setFilter("min_price", minInput)}
+                onKeyDown={e => e.key === "Enter" && setFilter("min_price", minInput)}
+                style={{ padding: "7px 10px", fontSize: "0.8rem", width: "50%" }}
+              />
+              <input
+                className="input"
+                type="number" placeholder="Max"
+                value={maxInput}
+                onChange={e => setMaxInput(e.target.value)}
+                onBlur={() => setFilter("max_price", maxInput)}
+                onKeyDown={e => e.key === "Enter" && setFilter("max_price", maxInput)}
+                style={{ padding: "7px 10px", fontSize: "0.8rem", width: "50%" }}
+              />
+            </div>
+            {(minPrice || maxPrice) && (
+              <div onClick={() => { setMinInput(""); setMaxInput(""); setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("min_price"); next.delete("max_price"); return next; }); }}
+                style={{ fontSize: "0.72rem", color: "var(--lime)", cursor: "pointer", paddingLeft: 2 }}>
+                ✕ Clear price
+              </div>
+            )}
+          </div>
+
+          {(search || statusFilter || categoryFilter || subcategoryFilter || sortBy || minPrice || maxPrice) && (
+            <button onClick={() => { setMinInput(""); setMaxInput(""); clearFilters(); }}
+              className="btn-ghost" style={{ width: "100%", fontSize: "0.75rem", padding: "7px" }}>
+              Clear All Filters
             </button>
           )}
         </div>
