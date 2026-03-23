@@ -191,19 +191,49 @@ export default function AuctionDetail() {
                   <div key={bid.id} style={{
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     padding: "12px 0", borderBottom: "1px solid var(--border)",
-                    background: i === 0 ? "rgba(200,255,0,0.02)" : "transparent",
+                    animation: i === 0 ? "slideInBid 0.4s cubic-bezier(0.16,1,0.3,1)" : "none",
+                    background: i === 0 ? "rgba(200,255,0,0.03)" : "transparent",
                   }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                      {i === 0 && <span style={{ fontSize: "0.8rem" }}>👑</span>}
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                      {/* Avatar */}
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
+                        background: i === 0 ? "var(--lime)" : "var(--surface-3)",
+                        border: i === 0 ? "none" : "1px solid var(--border)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 900, fontSize: "0.78rem",
+                        color: i === 0 ? "#000" : "var(--muted)",
+                        transition: "all 0.3s",
+                      }}>
+                        {bid.bidder_name?.[0]?.toUpperCase() || "?"}
+                      </div>
                       <div>
-                        <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{bid.bidder_name}</div>
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{new Date(bid.bid_date).toLocaleString()}</div>
+                        <div style={{
+                          fontWeight: 600, fontSize: "0.875rem",
+                          display: "flex", alignItems: "center", gap: 6,
+                        }}>
+                          {bid.bidder_name}
+                          {i === 0 && (
+                            <span style={{
+                              fontFamily: "'Barlow Condensed', sans-serif",
+                              fontSize: "0.6rem", fontWeight: 800,
+                              letterSpacing: "0.1em", textTransform: "uppercase",
+                              background: "rgba(200,255,0,0.12)",
+                              color: "var(--lime)", padding: "1px 6px", borderRadius: 2,
+                            }}>LEADING</span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+                          {new Date(bid.bid_date).toLocaleString()}
+                        </div>
                       </div>
                     </div>
                     <div style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
                       color: i === 0 ? "var(--lime)" : "var(--text-2)",
-                      fontSize: i === 0 ? "1.15rem" : "1rem",
+                      fontSize: i === 0 ? "1.2rem" : "1rem",
+                      transition: "all 0.3s",
                     }}>${bid.amount?.toLocaleString()}</div>
                   </div>
                 ))}

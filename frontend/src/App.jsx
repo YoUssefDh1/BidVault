@@ -7,6 +7,7 @@ import AuctionDetail from "./pages/AuctionDetail";
 import CreateProduct from "./pages/CreateProduct";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
+import NotFound from "./pages/Notfound";
 
 function ProtectedRoute({ children, roles }) {
   const { token, role } = useAuthStore();
@@ -44,7 +45,7 @@ export default function App() {
           </ProtectedRoute>
         } />
 
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

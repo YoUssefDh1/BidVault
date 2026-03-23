@@ -207,6 +207,10 @@ label {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }
 }
+@keyframes slideInBid {
+  from { opacity: 0; transform: translateX(-12px); background: rgba(200,255,0,0.08); }
+  to   { opacity: 1; transform: translateX(0);     background: rgba(200,255,0,0.03); }
+}
 @keyframes fadeIn {
   from { opacity: 0; }
   to   { opacity: 1; }

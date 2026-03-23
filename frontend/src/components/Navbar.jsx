@@ -4,6 +4,7 @@ import api from "../api";
 import useAuthStore from "../store/authStore";
 import AuthModal from "./AuthModal";
 import AuthNudge from "./AuthNudge";
+import NotificationBell from "./NotificationBell";
 
 export default function Navbar() {
   const { token, role, user, logout } = useAuthStore();
@@ -96,6 +97,27 @@ export default function Navbar() {
             <span style={{ color: "var(--lime)", fontSize: "1.1rem" }}>.</span>
           </span>
         </Link>
+
+        {/* Nav links */}
+        <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
+          {[
+            { to: "/auctions", label: "Live Auctions", show: true },
+            { to: "/products/create", label: "Consign", show: token && role === "user" },
+            { to: "/admin", label: "Dashboard", show: role === "admin" },
+          ].filter(l => l.show).map(({ to, label }) => (
+            <Link key={to} to={to} style={{ textDecoration: "none" }}>
+              <span style={{
+                padding: "6px 14px",
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 700, fontSize: "0.85rem",
+                letterSpacing: "0.08em", textTransform: "uppercase",
+                color: location.pathname === to ? "var(--lime)" : "var(--text-2)",
+                borderBottom: location.pathname === to ? "2px solid var(--lime)" : "2px solid transparent",
+                transition: "all 0.15s ease", display: "block", paddingBottom: 4,
+              }}>{label}</span>
+            </Link>
+          ))}
+        </div>
 
         {/* Search bar */}
         <form onSubmit={handleSubmit}
@@ -228,6 +250,7 @@ export default function Navbar() {
 
         {/* Right Auth */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
+          <NotificationBell />
           {token ? (
             <ProfileDropdown user={user} role={role} onLogout={() => { logout(); navigate("/"); }} navigate={navigate} />
           ) : (
