@@ -17,6 +17,8 @@ class User(Base):
     created_at       = Column(DateTime, default=datetime.utcnow)
     is_active        = Column(Boolean,  default=True)   # admin can block/unblock
     profile_image_id = Column(Integer, ForeignKey("images.id"), nullable=True)
+    city             = Column(String,  nullable=True)
+    country          = Column(String,  nullable=True)
 
     # As a seller — products they listed
     products      = relationship("Product",      back_populates="seller",

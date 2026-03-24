@@ -78,8 +78,22 @@ def mark_all_read(db: Session = Depends(get_db), user: User = Depends(get_curren
 
 class ProfileUpdate(BaseModel):
     name:             Optional[str] = None
+    city:             Optional[str] = None
+    country:          Optional[str] = None
     current_password: Optional[str] = None
     new_password:     Optional[str] = None
+
+
+@router.get("/me")
+def get_me(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    return {
+        "id":         user.id,
+        "name":       user.name,
+        "email":      user.email,
+        "city":       user.city,
+        "country":    user.country,
+        "created_at": user.created_at,
+    }
 
 
 @router.put("/me", response_model=Token)
@@ -88,8 +102,9 @@ def update_profile(
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    if data.name:
-        user.name = data.name
+    if data.name:    user.name    = data.name
+    if data.city is not None:    user.city    = data.city
+    if data.country is not None: user.country = data.country
     if data.new_password:
         if not data.current_password:
             raise HTTPException(status_code=400, detail="Current password is required")
