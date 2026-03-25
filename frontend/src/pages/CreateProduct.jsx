@@ -2,63 +2,60 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
 
-const Label = ({ children, required }) => (
-  <div style={{
-    fontSize: "0.65rem", color: "var(--muted)",
-    fontFamily: "'Barlow Condensed', sans-serif",
-    letterSpacing: "0.12em", textTransform: "uppercase",
-    fontWeight: 700, marginBottom: 6,
-  }}>
-    {children}{required && <span style={{ color: "var(--lime)", marginLeft: 4 }}>*</span>}
-  </div>
-);
+// ── Step config ───────────────────────────────────────────────
+const STEPS = [
+  { number: 1, label: "Photos"   },
+  { number: 2, label: "Details"  },
+  { number: 3, label: "Category" },
+  { number: 4, label: "Schedule" },
+  { number: 5, label: "Review"   },
+];
 
-// ── Rich text toolbar ─────────────────────────────────────────
-function RichTextEditor({ value, onChange }) {
-  const exec = (cmd, val = null) => { document.execCommand(cmd, false, val); };
+// ── Step indicator ────────────────────────────────────────────
+function StepIndicator({ current }) {
   return (
-    <div style={{ border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
-      {/* Toolbar */}
-      <div style={{
-        display: "flex", gap: 2, padding: "6px 10px",
-        background: "var(--surface-2)", borderBottom: "1px solid var(--border)",
-        flexWrap: "wrap",
-      }}>
-        {[
-          { cmd: "bold",          label: "B",  style: { fontWeight: 900 } },
-          { cmd: "italic",        label: "I",  style: { fontStyle: "italic" } },
-          { cmd: "underline",     label: "U",  style: { textDecoration: "underline" } },
-          { cmd: "insertUnorderedList", label: "• List" },
-          { cmd: "insertOrderedList",   label: "1. List" },
-        ].map(({ cmd, label, style }) => (
-          <button key={cmd} type="button"
-            onMouseDown={(e) => { e.preventDefault(); exec(cmd); }}
-            style={{
-              background: "transparent", border: "1px solid var(--border)",
-              color: "var(--text-2)", cursor: "pointer",
-              padding: "3px 10px", borderRadius: 2,
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "0.78rem", fontWeight: 700,
-              transition: "all 0.15s", ...(style || {}),
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--lime)"; e.currentTarget.style.color = "var(--lime)"; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-2)"; }}
-          >{label}</button>
-        ))}
-      </div>
-      {/* Editable area */}
-      <div
-        contentEditable
-        suppressContentEditableWarning
-        onInput={(e) => onChange(e.currentTarget.innerHTML)}
-        style={{
-          minHeight: 120, padding: "12px 14px",
-          background: "var(--surface-2)", color: "var(--text)",
-          fontFamily: "'Barlow', sans-serif", fontSize: "0.9rem",
-          lineHeight: 1.7, outline: "none",
-        }}
-        dangerouslySetInnerHTML={{ __html: value }}
-      />
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: 48 }}>
+      {STEPS.map((step, i) => {
+        const done   = current > step.number;
+        const active = current === step.number;
+        return (
+          <div key={step.number} style={{ display: "flex", alignItems: "center" }}>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 900, fontSize: "0.85rem",
+                transition: "all 0.3s",
+                background: done ? "var(--lime)" : active ? "var(--lime)" : "transparent",
+                border: done || active ? "none" : "2px solid var(--border-2)",
+                color: done || active ? "#000" : "var(--muted)",
+              }}>
+                {done ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                ) : step.number}
+              </div>
+              <div style={{
+                fontSize: "0.62rem",
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontWeight: 700, letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: active ? "var(--lime)" : done ? "var(--text-2)" : "var(--muted)",
+                transition: "color 0.3s",
+              }}>{step.label}</div>
+            </div>
+            {i < STEPS.length - 1 && (
+              <div style={{
+                width: 60, height: 2, marginBottom: 22, marginLeft: 4, marginRight: 4,
+                background: done ? "var(--lime)" : "var(--border)",
+                transition: "background 0.3s",
+              }} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -66,13 +63,13 @@ function RichTextEditor({ value, onChange }) {
 // ── Image upload zone ─────────────────────────────────────────
 function ImageUploadZone({ images, setImages }) {
   const inputRef = useRef(null);
-  const [dragging, setDragging] = useState(false);
+  const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
 
   const addFiles = (files) => {
-    const newImgs = Array.from(files).map((file) => ({
-      file,
-      preview: URL.createObjectURL(file),
+    const newImgs = Array.from(files).map((f) => ({
+      file: f,
+      preview: URL.createObjectURL(f),
       id: Math.random().toString(36).slice(2),
     }));
     setImages((prev) => [...prev, ...newImgs].slice(0, 6));
@@ -80,9 +77,7 @@ function ImageUploadZone({ images, setImages }) {
 
   const remove = (id) => setImages((prev) => prev.filter((img) => img.id !== id));
 
-  const handleDragStart = (id) => setDragging(id);
-  const handleDragOver  = (e, id) => { e.preventDefault(); setDragOver(id); };
-  const handleDrop      = (e, targetId) => {
+  const handleDrop = (e, targetId) => {
     e.preventDefault();
     if (!dragging || dragging === targetId) { setDragging(null); setDragOver(null); return; }
     setImages((prev) => {
@@ -98,134 +93,176 @@ function ImageUploadZone({ images, setImages }) {
 
   return (
     <div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginBottom: 8 }}>
-        {images.map((img, i) => (
-          <div key={img.id}
-            draggable
-            onDragStart={() => handleDragStart(img.id)}
-            onDragOver={(e) => handleDragOver(e, img.id)}
-            onDrop={(e) => handleDrop(e, img.id)}
-            style={{
-              position: "relative", aspectRatio: "4/3",
-              border: dragOver === img.id ? "2px solid var(--lime)" : "1px solid var(--border)",
-              borderRadius: 2, overflow: "hidden", cursor: "grab",
-              opacity: dragging === img.id ? 0.5 : 1,
-              transition: "border-color 0.15s, opacity 0.15s",
-            }}>
-            <img src={img.preview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            {/* Primary badge */}
-            {i === 0 && (
-              <div style={{
-                position: "absolute", top: 6, left: 6,
-                background: "var(--lime)", color: "#000",
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 800, fontSize: "0.58rem",
-                letterSpacing: "0.1em", textTransform: "uppercase",
-                padding: "2px 6px", borderRadius: 2,
-              }}>Cover</div>
-            )}
-            {/* Remove */}
-            <button onClick={() => remove(img.id)} type="button" style={{
-              position: "absolute", top: 6, right: 6,
-              width: 22, height: 22, borderRadius: "50%",
-              background: "rgba(0,0,0,0.8)", border: "none",
-              color: "var(--text)", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "0.7rem",
-            }}>✕</button>
-          </div>
-        ))}
+      {/* Drop zone */}
+      <div
+        onClick={() => inputRef.current.click()}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
+        style={{
+          border: "2px dashed var(--border-2)", borderRadius: 4,
+          padding: "40px 20px", textAlign: "center",
+          cursor: "pointer", marginBottom: 20, transition: "border-color 0.15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--lime)"}
+        onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-2)"}
+      >
+        <div style={{ fontSize: "2rem", marginBottom: 10, opacity: 0.5 }}>📷</div>
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
+          fontSize: "1rem", textTransform: "uppercase", letterSpacing: "0.06em",
+          marginBottom: 6,
+        }}>Drop photos here or click to upload</div>
+        <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+          Up to 6 images · JPG, PNG, WEBP · First image is the cover
+        </div>
+      </div>
 
-        {/* Add slot */}
-        {images.length < 6 && (
-          <div onClick={() => inputRef.current.click()} style={{
-            aspectRatio: "4/3", border: "2px dashed var(--border)",
-            borderRadius: 2, display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center",
-            cursor: "pointer", gap: 6, transition: "border-color 0.15s",
-          }}
-            onMouseEnter={e => e.currentTarget.style.borderColor = "var(--lime)"}
-            onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border)"}
-          >
-            <div style={{ fontSize: "1.4rem", opacity: 0.4 }}>+</div>
-            <div style={{ fontSize: "0.68rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.08em" }}>
-              Add Image
+      {/* Grid of uploaded images */}
+      {images.length > 0 && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10 }}>
+          {images.map((img, i) => (
+            <div key={img.id}
+              draggable
+              onDragStart={() => setDragging(img.id)}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(img.id); }}
+              onDrop={(e) => handleDrop(e, img.id)}
+              style={{
+                position: "relative", aspectRatio: "4/3",
+                border: dragOver === img.id ? "2px solid var(--lime)" : "1px solid var(--border)",
+                borderRadius: 2, overflow: "hidden", cursor: "grab",
+                opacity: dragging === img.id ? 0.5 : 1, transition: "border-color 0.15s",
+              }}>
+              <img src={img.preview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {i === 0 && (
+                <div style={{
+                  position: "absolute", top: 6, left: 6,
+                  background: "var(--lime)", color: "#000",
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 800, fontSize: "0.58rem",
+                  letterSpacing: "0.1em", textTransform: "uppercase",
+                  padding: "2px 6px", borderRadius: 2,
+                }}>Cover</div>
+              )}
+              <button onClick={(e) => { e.stopPropagation(); remove(img.id); }} type="button" style={{
+                position: "absolute", top: 6, right: 6,
+                width: 24, height: 24, borderRadius: "50%",
+                background: "rgba(0,0,0,0.85)", border: "none",
+                color: "white", cursor: "pointer", fontSize: "0.75rem",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>✕</button>
             </div>
-          </div>
-        )}
-      </div>
-      <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
-        Up to 6 images · First image is the cover · Drag to reorder
-      </div>
-      <input ref={inputRef} type="file" multiple accept="image/*" style={{ display: "none" }}
-        onChange={(e) => addFiles(e.target.files)} />
+          ))}
+        </div>
+      )}
+      <input ref={inputRef} type="file" multiple accept="image/*"
+        style={{ display: "none" }} onChange={(e) => addFiles(e.target.files)} />
     </div>
   );
 }
 
-// ── Live preview card ─────────────────────────────────────────
-function PreviewCard({ title, description, price, category, image }) {
+// ── Rich text editor ──────────────────────────────────────────
+function RichTextEditor({ value, onChange }) {
+  const editorRef = useRef(null);
+  const exec = (cmd) => { document.execCommand(cmd, false, null); };
+
+  // Set initial content only once on mount
+  useEffect(() => {
+    if (editorRef.current && value === "") {
+      editorRef.current.innerHTML = "";
+    }
+  }, []);
+
   return (
-    <div style={{
-      background: "var(--surface)", border: "1px solid var(--border)",
-      borderRadius: 2, overflow: "hidden", position: "sticky", top: 80,
-    }}>
-      <div style={{ height: 200, background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-        {image
-          ? <img src={image} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          : <span style={{ fontSize: "3rem", opacity: 0.15 }}>🏷</span>}
+    <div style={{ border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
+      <div style={{
+        display: "flex", gap: 4, padding: "8px 12px",
+        background: "var(--surface-2)", borderBottom: "1px solid var(--border)",
+      }}>
+        {[
+          { cmd: "bold",                label: "B",      style: { fontWeight: 900 } },
+          { cmd: "italic",              label: "I",      style: { fontStyle: "italic" } },
+          { cmd: "underline",           label: "U",      style: { textDecoration: "underline" } },
+          { cmd: "insertUnorderedList", label: "• List" },
+          { cmd: "insertOrderedList",   label: "1. List" },
+        ].map(({ cmd, label, style }) => (
+          <button key={cmd} type="button"
+            onMouseDown={(e) => { e.preventDefault(); exec(cmd); }}
+            style={{
+              background: "transparent", border: "1px solid var(--border)",
+              color: "var(--text-2)", cursor: "pointer", padding: "3px 10px",
+              borderRadius: 2, fontFamily: "'Barlow Condensed', sans-serif",
+              fontSize: "0.78rem", fontWeight: 700, transition: "all 0.15s",
+              ...(style || {}),
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--lime)"; e.currentTarget.style.color = "var(--lime)"; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-2)"; }}
+          >{label}</button>
+        ))}
       </div>
-      <div style={{ padding: "14px 16px" }}>
-        {category && (
-          <div style={{ fontSize: "0.62rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>
-            {category}
-          </div>
-        )}
-        <div style={{ fontWeight: 700, fontSize: "1rem", marginBottom: 6, color: title ? "var(--text)" : "var(--muted)", fontStyle: title ? "normal" : "italic" }}>
-          {title || "Product title"}
-        </div>
-        {description && (
-          <div style={{
-            fontSize: "0.78rem", color: "var(--muted)", marginBottom: 10,
-            lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 2,
-            WebkitBoxOrient: "vertical", overflow: "hidden",
-          }} dangerouslySetInnerHTML={{ __html: description || "" }} />
-        )}
-        <div style={{ borderTop: "1px solid var(--border)", paddingTop: 10, marginTop: 4 }}>
-          <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            Starting Bid
-          </div>
-          <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.4rem", color: price ? "var(--lime)" : "var(--muted)" }}>
-            {price ? `$${parseFloat(price).toLocaleString()}` : "$0"}
-          </div>
-        </div>
-      </div>
+      <div
+        ref={editorRef}
+        contentEditable
+        suppressContentEditableWarning
+        onInput={(e) => onChange(e.currentTarget.innerHTML)}
+        style={{
+          minHeight: 140, padding: "12px 14px",
+          background: "var(--surface-2)", color: "var(--text)",
+          fontFamily: "'Barlow', sans-serif", fontSize: "0.9rem",
+          lineHeight: 1.7, outline: "none",
+        }}
+      />
     </div>
   );
 }
 
-// ── Main page ─────────────────────────────────────────────────
+// ── Label ─────────────────────────────────────────────────────
+const FieldLabel = ({ children, required }) => (
+  <div style={{
+    fontSize: "0.65rem", color: "var(--muted)",
+    fontFamily: "'Barlow Condensed', sans-serif",
+    letterSpacing: "0.12em", textTransform: "uppercase",
+    fontWeight: 700, marginBottom: 6,
+  }}>
+    {children}
+    {required && <span style={{ color: "var(--lime)", marginLeft: 4 }}>*</span>}
+  </div>
+);
+
+// ── Step shells ───────────────────────────────────────────────
+function StepCard({ title, subtitle, children }) {
+  return (
+    <div style={{ animation: "fadeUp 0.25s ease forwards" }}>
+      <h2 style={{ fontSize: "1.8rem", fontWeight: 900, marginBottom: 6 }}>{title}</h2>
+      {subtitle && <p style={{ color: "var(--muted)", fontSize: "0.9rem", marginBottom: 28, lineHeight: 1.6 }}>{subtitle}</p>}
+      {children}
+    </div>
+  );
+}
+
+// ── Main ──────────────────────────────────────────────────────
 export default function CreateProduct() {
   const navigate = useNavigate();
+  const [step, setStep] = useState(1);
 
-  const [categories, setCategories]   = useState([]);
+  const [categories, setCategories]     = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [images, setImages]           = useState([]);
-
-  // Form fields
-  const [title, setTitle]             = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice]             = useState("");
-  const [categoryId, setCategoryId]   = useState("");
+  const [images, setImages]             = useState([]);
+  const [title, setTitle]               = useState("");
+  const [description, setDescription]   = useState("");
+  const [price, setPrice]               = useState("");
+  const [categoryId, setCategoryId]     = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
-  const [startDate, setStartDate]     = useState("");
-  const [endDate, setEndDate]         = useState("");
-
-  const [loading, setLoading]         = useState(false);
-  const [error, setError]             = useState("");
+  const [startDate, setStartDate]       = useState("");
+  const [endDate, setEndDate]           = useState("");
+  const [loading, setLoading]           = useState(false);
+  const [error, setError]               = useState("");
 
   useEffect(() => {
     api.get("/categories").then(({ data }) => setCategories(data));
+    const now = new Date();
+    const end = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const fmt = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setStartDate(fmt(now)); setEndDate(fmt(end));
   }, []);
 
   useEffect(() => {
@@ -235,22 +272,20 @@ export default function CreateProduct() {
     setSubcategoryId("");
   }, [categoryId, categories]);
 
-  // Default dates: start now, end in 7 days
-  useEffect(() => {
-    const now  = new Date();
-    const end  = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
-    const fmt  = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    setStartDate(fmt(now));
-    setEndDate(fmt(end));
-  }, []);
+  const canNext = () => {
+    if (step === 1) return true; // photos optional
+    if (step === 2) return title.trim().length > 0;
+    if (step === 3) return true; // category optional
+    if (step === 4) return price && startDate && endDate && new Date(endDate) > new Date(startDate);
+    return true;
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!title || !price || !startDate || !endDate) { setError("Please fill in all required fields."); return; }
-    if (new Date(endDate) <= new Date(startDate)) { setError("End date must be after start date."); return; }
+  const next = () => { if (canNext()) { setError(""); setStep(s => s + 1); } else setError("Please fill in the required fields."); };
+  const back = () => { setError(""); setStep(s => s - 1); };
+
+  const handlePublish = async () => {
     setError(""); setLoading(true);
     try {
-      // 1. Create product
       const { data: product } = await api.post("/products", {
         title, description,
         starting_price: parseFloat(price),
@@ -259,8 +294,6 @@ export default function CreateProduct() {
         category_id:    categoryId    ? parseInt(categoryId)    : null,
         subcategory_id: subcategoryId ? parseInt(subcategoryId) : null,
       });
-
-      // 2. Upload images
       for (const img of images) {
         const fd = new FormData();
         fd.append("file", img.file);
@@ -268,151 +301,245 @@ export default function CreateProduct() {
           headers: { "Content-Type": "multipart/form-data" },
         });
       }
-
-      // 3. Auto-create auction
       await api.post("/auctions", {
         product_id: product.id,
         start_date: new Date(startDate).toISOString(),
         end_date:   new Date(endDate).toISOString(),
       });
-
-      navigate(`/profile?tab=listings`);
+      navigate("/profile?tab=listings");
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to create listing.");
-    } finally {
-      setLoading(false);
-    }
+      setError(err.response?.data?.detail || "Failed to publish listing.");
+    } finally { setLoading(false); }
   };
 
-  const selectedCatName = categories.find((c) => c.id.toString() === categoryId)?.name;
+  const selectedCat = categories.find((c) => c.id.toString() === categoryId);
+  const selectedSub = subcategories.find((s) => s.id.toString() === subcategoryId);
+  const days = startDate && endDate ? Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24)) : null;
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px" }}>
+    <div style={{ maxWidth: 720, margin: "0 auto", padding: "56px 32px" }}>
 
-      {/* Header */}
-      <div style={{ marginBottom: 36 }}>
+      {/* Page title */}
+      <div style={{ textAlign: "center", marginBottom: 40 }}>
         <div style={{
           fontSize: "0.68rem", color: "var(--lime)",
           fontFamily: "'Barlow Condensed', sans-serif",
           letterSpacing: "0.15em", textTransform: "uppercase",
-          fontWeight: 700, marginBottom: 6,
+          fontWeight: 700, marginBottom: 8,
         }}>New Listing</div>
-        <h1 style={{ fontSize: "2.4rem", fontWeight: 900 }}>List Your Item</h1>
+        <h1 style={{ fontSize: "2.2rem", fontWeight: 900 }}>List Your Item</h1>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 48, alignItems: "start" }}>
+      {/* Step indicator */}
+      <StepIndicator current={step} />
 
-          {/* ── Left — form ── */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-            {error && <div className="msg-error">{error}</div>}
+      {/* Card */}
+      <div style={{
+        background: "var(--surface)", border: "1px solid var(--border)",
+        borderRadius: 4, padding: "36px 40px",
+      }}>
+        {error && <div className="msg-error" style={{ marginBottom: 20 }}>{error}</div>}
 
-            {/* Images */}
-            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: 24, borderRadius: 2 }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: 16, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Photos
-              </h3>
-              <ImageUploadZone images={images} setImages={setImages} />
-            </div>
+        {/* ── STEP 1 — Photos ── */}
+        {step === 1 && (
+          <StepCard title="Add Photos" subtitle="Great photos help buyers make confident decisions. Add up to 6 images — drag to reorder, first image becomes the cover.">
+            <ImageUploadZone images={images} setImages={setImages} />
+          </StepCard>
+        )}
 
-            {/* Details */}
-            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: 24, borderRadius: 2 }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: 20, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Details
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <div>
-                  <Label required>Title</Label>
-                  <input className="input" placeholder="e.g. 1972 Porsche 911 T Coupe"
-                    value={title} onChange={(e) => setTitle(e.target.value)} required />
-                </div>
-
-                <div>
-                  <Label>Description</Label>
-                  <RichTextEditor value={description} onChange={setDescription} />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  <div>
-                    <Label>Category</Label>
-                    <select className="input" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} style={{ cursor: "pointer" }}>
-                      <option value="">Select category...</option>
-                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <Label>Subcategory</Label>
-                    <select className="input" value={subcategoryId} onChange={(e) => setSubcategoryId(e.target.value)}
-                      disabled={!subcategories.length} style={{ cursor: subcategories.length ? "pointer" : "not-allowed", opacity: subcategories.length ? 1 : 0.4 }}>
-                      <option value="">All subcategories</option>
-                      {subcategories.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-                    </select>
-                  </div>
-                </div>
+        {/* ── STEP 2 — Details ── */}
+        {step === 2 && (
+          <StepCard title="Describe Your Item" subtitle="Give your listing a clear title and a detailed description so buyers know exactly what they're bidding on.">
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div>
+                <FieldLabel required>Title</FieldLabel>
+                <input className="input" placeholder="e.g. 1972 Porsche 911 T Coupe"
+                  value={title} onChange={(e) => setTitle(e.target.value)} />
+              </div>
+              <div>
+                <FieldLabel>Description</FieldLabel>
+                <RichTextEditor value={description} onChange={setDescription} />
               </div>
             </div>
+          </StepCard>
+        )}
 
-            {/* Pricing & Schedule */}
-            <div style={{ background: "var(--surface)", border: "1px solid var(--border)", padding: 24, borderRadius: 2 }}>
-              <h3 style={{ fontSize: "1rem", fontWeight: 800, marginBottom: 20, textTransform: "uppercase", letterSpacing: "0.06em" }}>
-                Pricing & Schedule
-              </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* ── STEP 3 — Category ── */}
+        {step === 3 && (
+          <StepCard title="Choose a Category" subtitle="Placing your item in the right category helps serious buyers find it faster.">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <FieldLabel>Category</FieldLabel>
+                <select className="input" value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)} style={{ cursor: "pointer" }}>
+                  <option value="">Select a category...</option>
+                  {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              {subcategories.length > 0 && (
+                <div style={{ animation: "fadeUp 0.2s ease" }}>
+                  <FieldLabel>Subcategory</FieldLabel>
+                  <select className="input" value={subcategoryId}
+                    onChange={(e) => setSubcategoryId(e.target.value)} style={{ cursor: "pointer" }}>
+                    <option value="">All subcategories</option>
+                    {subcategories.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              )}
+              {/* Category grid selector */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 8 }}>
+                {categories.map((c) => {
+                  const icons = { "Modern Art":"🎨","Automotive":"🚗","Horology":"⌚","Jewelry & Gems":"💎","Electronics":"📱","Fashion":"👜","Collectibles":"🏆","Real Estate":"🏠","Books & Manuscripts":"📚","Wine & Spirits":"🍷","Musical Instruments":"🎸","Gaming & Consoles":"🎮","Photography Equipment":"📷" };
+                  const selected = categoryId === c.id.toString();
+                  return (
+                    <div key={c.id} onClick={() => setCategoryId(selected ? "" : c.id.toString())} style={{
+                      padding: "12px 10px", textAlign: "center",
+                      border: selected ? "1px solid var(--lime)" : "1px solid var(--border)",
+                      borderRadius: 2, cursor: "pointer",
+                      background: selected ? "rgba(200,255,0,0.06)" : "var(--surface-2)",
+                      transition: "all 0.15s",
+                    }}>
+                      <div style={{ fontSize: "1.3rem", marginBottom: 4 }}>{icons[c.name] || "🏷"}</div>
+                      <div style={{
+                        fontSize: "0.68rem", fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
+                        color: selected ? "var(--lime)" : "var(--muted)",
+                      }}>{c.name}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </StepCard>
+        )}
+
+        {/* ── STEP 4 — Schedule ── */}
+        {step === 4 && (
+          <StepCard title="Set Your Price & Schedule" subtitle="Set the starting bid and choose when your auction goes live. The auction will be created automatically.">
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              <div>
+                <FieldLabel required>Starting Bid ($)</FieldLabel>
+                <input className="input" type="number" min="0" step="0.01"
+                  placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
-                  <Label required>Starting Price ($)</Label>
-                  <input className="input" type="number" min="0" step="0.01"
-                    placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                  <FieldLabel required>Auction Start</FieldLabel>
+                  <input className="input" type="datetime-local"
+                    value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                  <div>
-                    <Label required>Auction Start</Label>
-                    <input className="input" type="datetime-local"
-                      value={startDate} onChange={(e) => setStartDate(e.target.value)} required />
-                  </div>
-                  <div>
-                    <Label required>Auction End</Label>
-                    <input className="input" type="datetime-local"
-                      value={endDate} onChange={(e) => setEndDate(e.target.value)} required />
-                  </div>
+                <div>
+                  <FieldLabel required>Auction End</FieldLabel>
+                  <input className="input" type="datetime-local"
+                    value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                 </div>
-                {startDate && endDate && new Date(endDate) > new Date(startDate) && (
-                  <div style={{
-                    fontSize: "0.78rem", color: "var(--lime)",
-                    fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.06em",
-                  }}>
-                    ✓ Auction runs for{" "}
-                    {Math.round((new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24))} days
+              </div>
+              {days > 0 && (
+                <div style={{
+                  padding: "12px 16px", background: "rgba(200,255,0,0.05)",
+                  border: "1px solid rgba(200,255,0,0.15)", borderRadius: 2,
+                  fontSize: "0.82rem", color: "var(--lime)",
+                  fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.06em",
+                }}>
+                  ✓ Auction runs for {days} day{days !== 1 ? "s" : ""}
+                </div>
+              )}
+            </div>
+          </StepCard>
+        )}
+
+        {/* ── STEP 5 — Review ── */}
+        {step === 5 && (
+          <StepCard title="Review & Publish" subtitle="Everything look good? Your listing goes live immediately after publishing.">
+            <div style={{ display: "flex", gap: 24 }}>
+              {/* Cover image */}
+              <div style={{
+                width: 140, height: 140, flexShrink: 0, borderRadius: 2,
+                background: "var(--surface-2)", border: "1px solid var(--border)",
+                overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                {images[0]
+                  ? <img src={images[0].preview} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : <span style={{ fontSize: "2.5rem", opacity: 0.2 }}>🏷</span>}
+              </div>
+
+              {/* Summary */}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Title</div>
+                  <div style={{ fontWeight: 700 }}>{title}</div>
+                </div>
+                {selectedCat && (
+                  <div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Category</div>
+                    <div>{selectedCat.name}{selectedSub ? ` › ${selectedSub.name}` : ""}</div>
                   </div>
                 )}
+                <div style={{ display: "flex", gap: 24 }}>
+                  <div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Starting Bid</div>
+                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "var(--lime)" }}>${parseFloat(price || 0).toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Duration</div>
+                    <div style={{ fontWeight: 600 }}>{days} day{days !== 1 ? "s" : ""}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Photos</div>
+                    <div style={{ fontWeight: 600 }}>{images.length} image{images.length !== 1 ? "s" : ""}</div>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Submit */}
-            <button className="btn-primary" type="submit" disabled={loading}
-              style={{ padding: "14px 40px", fontSize: "0.95rem", alignSelf: "flex-start" }}>
+            {/* Edit shortcuts */}
+            <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--border)", display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {[
+                { label: "Edit Photos",   s: 1 },
+                { label: "Edit Details",  s: 2 },
+                { label: "Edit Category", s: 3 },
+                { label: "Edit Schedule", s: 4 },
+              ].map(({ label, s }) => (
+                <button key={s} type="button" className="btn-ghost"
+                  onClick={() => setStep(s)}
+                  style={{ fontSize: "0.75rem", padding: "6px 14px" }}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </StepCard>
+        )}
+
+        {/* ── Navigation ── */}
+        <div style={{
+          display: "flex", justifyContent: "space-between", alignItems: "center",
+          marginTop: 36, paddingTop: 28, borderTop: "1px solid var(--border)",
+        }}>
+          <button type="button" onClick={back} disabled={step === 1}
+            className="btn-ghost" style={{
+              padding: "10px 24px", fontSize: "0.85rem",
+              opacity: step === 1 ? 0 : 1, pointerEvents: step === 1 ? "none" : "auto",
+            }}>
+            ← Back
+          </button>
+
+          <div style={{ fontSize: "0.72rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.06em" }}>
+            Step {step} of {STEPS.length}
+          </div>
+
+          {step < 5 ? (
+            <button type="button" onClick={next} className="btn-primary"
+              style={{ padding: "10px 28px", fontSize: "0.85rem" }}>
+              Continue →
+            </button>
+          ) : (
+            <button type="button" onClick={handlePublish} disabled={loading}
+              className="btn-primary" style={{ padding: "10px 28px", fontSize: "0.85rem" }}>
               {loading ? "Publishing..." : "Publish Listing →"}
             </button>
-          </div>
-
-          {/* ── Right — live preview ── */}
-          <div>
-            <div style={{
-              fontSize: "0.65rem", color: "var(--muted)",
-              fontFamily: "'Barlow Condensed', sans-serif",
-              letterSpacing: "0.12em", textTransform: "uppercase",
-              fontWeight: 700, marginBottom: 12,
-            }}>Live Preview</div>
-            <PreviewCard
-              title={title}
-              description={description}
-              price={price}
-              category={selectedCatName}
-              image={images[0]?.preview}
-            />
-          </div>
-
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }

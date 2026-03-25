@@ -39,7 +39,12 @@ export default function AuthModal({ mode, onClose }) {
         onClose();
       } else {
         const { data } = await api.post("/auth/login", { email, password });
-        login(data.access_token, data.role, { email });
+        // Fetch full user info so we have the name
+        const meRes = await fetch("http://localhost:8000/users/me", {
+          headers: { Authorization: `Bearer ${data.access_token}` },
+        });
+        const me = meRes.ok ? await meRes.json() : { email };
+        login(data.access_token, data.role, me);
         onClose();
         if (data.role === "admin") navigate("/admin");
       }

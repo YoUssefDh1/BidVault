@@ -22,105 +22,67 @@ const Label = ({ children }) => (
   }}>{children}</div>
 );
 
-function FieldRow({ label, value, hint, children }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <div style={{ paddingBottom: 28, marginBottom: 28, borderBottom: "1px solid var(--border)" }}>
-      <Label>{label}</Label>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 24 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: "1rem", fontWeight: 600, marginBottom: children ? 8 : 0, color: value ? "var(--text)" : "var(--muted)", fontStyle: value ? "normal" : "italic" }}>
-            {value || "Not set"}
-          </div>
-          {children && !open && (
-            <span onClick={() => setOpen(true)} style={{
-              fontSize: "0.82rem", color: "var(--lime)", cursor: "pointer",
-              fontWeight: 600, borderBottom: "1px solid rgba(200,255,0,0.3)",
-            }}>Change</span>
-          )}
-          {open && (
-            <div style={{ marginTop: 12 }}>
-              {children}
-              <span onClick={() => setOpen(false)} style={{
-                fontSize: "0.78rem", color: "var(--muted)", cursor: "pointer",
-                marginTop: 8, display: "block",
-              }}>Cancel</span>
-            </div>
-          )}
-        </div>
-        {hint && !open && (
-          <div style={{ fontSize: "0.78rem", color: "var(--muted)", maxWidth: 240, lineHeight: 1.6, flexShrink: 0 }}>
-            {hint}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
 function AccountTab({ user, login }) {
-  const [name, setName]         = useState(user?.name || "");
-  const [city, setCity]         = useState(user?.city || "");
-  const [country, setCountry]   = useState(user?.country || "");
-  const [currentPw, setCurrentPw] = useState("");
-  const [newPw, setNewPw]       = useState("");
-  const [error, setError]       = useState("");
-  const [success, setSuccess]   = useState("");
-  const [saving, setSaving]     = useState(false);
-  const [fullUser, setFullUser] = useState(null);
+  const [name, setName]             = useState(user?.name || "");
+  const [city, setCity]             = useState("");
+  const [country, setCountry]       = useState("");
+  const [currentPw, setCurrentPw]   = useState("");
+  const [newPw, setNewPw]           = useState("");
+  const [fullUser, setFullUser]     = useState(null);
+  const [saving, setSaving]         = useState(null); // which section is saving
+  const [errors, setErrors]         = useState({});
+  const [success, setSuccess]       = useState({});
 
   useEffect(() => {
     api.get("/users/me").then(({ data }) => {
       setFullUser(data);
+      setName(data.name || "");
       setCity(data.city || "");
       setCountry(data.country || "");
-      setName(data.name || "");
     });
   }, []);
 
-  const profileComplete = !!(fullUser?.city && fullUser?.country);
-
-  const save = async (payload) => {
-    setError(""); setSaving(true);
+  const save = async (section, payload) => {
+    setErrors({}); setSaving(section);
     try {
       const { data } = await api.put("/users/me", payload);
       login(data.access_token, data.role, {
         ...user,
         name: payload.name || user?.name,
-        city: payload.city ?? user?.city,
-        country: payload.country ?? user?.country,
       });
-      setSuccess("Saved!"); setTimeout(() => setSuccess(""), 2500);
-      setCurrentPw(""); setNewPw("");
-      // refresh local state
       const me = await api.get("/users/me");
       setFullUser(me.data);
+      setSuccess({ [section]: "Saved successfully!" });
+      setTimeout(() => setSuccess({}), 3000);
+      setCurrentPw(""); setNewPw("");
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to save.");
-    } finally { setSaving(false); }
+      setErrors({ [section]: err.response?.data?.detail || "Failed to save." });
+    } finally { setSaving(null); }
   };
 
-  return (
-    <div>
-      <h2 style={{ fontSize: "1.6rem", fontWeight: 900, marginBottom: 28 }}>Account</h2>
+  const profileComplete = !!(fullUser?.city && fullUser?.country);
 
-      {/* Profile completion banner */}
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+
+      {/* Completion banner */}
       {!profileComplete && (
         <div style={{
-          background: "rgba(200,255,0,0.05)",
-          border: "1px solid rgba(200,255,0,0.2)",
-          borderRadius: 4, padding: "14px 18px",
-          marginBottom: 28, display: "flex",
-          alignItems: "center", gap: 14,
+          display: "flex", alignItems: "center", gap: 16,
+          padding: "16px 20px",
+          background: "rgba(200,255,0,0.04)",
+          border: "1px solid rgba(200,255,0,0.2)", borderRadius: 4,
         }}>
-          <div style={{ fontSize: "1.4rem", flexShrink: 0 }}>📍</div>
-          <div style={{ flex: 1 }}>
-            <div style={{
-              fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 800, fontSize: "0.9rem",
-              textTransform: "uppercase", letterSpacing: "0.06em",
-              marginBottom: 3,
-            }}>Complete your profile</div>
+          <div style={{
+            width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+            background: "rgba(200,255,0,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "1.1rem",
+          }}>📍</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: "0.88rem", marginBottom: 2 }}>
+              Complete your profile
+            </div>
             <div style={{ fontSize: "0.78rem", color: "var(--muted)", lineHeight: 1.5 }}>
               Add your location so we can surface the best local auctions and sellers near you.
             </div>
@@ -128,45 +90,94 @@ function AccountTab({ user, login }) {
         </div>
       )}
 
-      {error   && <div className="msg-error"   style={{ marginBottom: 16 }}>{error}</div>}
-      {success && <div className="msg-success" style={{ marginBottom: 16 }}>{success}</div>}
-
-      {/* Name */}
-      <FieldRow label="Display Name" value={fullUser?.name} hint="This is how you appear to other users.">
-        <div style={{ display: "flex", gap: 10 }}>
-          <input className="input" value={name} onChange={e => setName(e.target.value)} style={{ maxWidth: 280 }} />
-          <button className="btn-primary" onClick={() => save({ name })} disabled={saving}
-            style={{ padding: "9px 20px", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </FieldRow>
-
-      {/* Email — read only */}
-      <FieldRow label="Email" value={fullUser?.email}
-        hint="Your email is used for login. Contact support to change it." />
-
-      {/* Password */}
-      <FieldRow label="Password" value="••••••••" hint="Use a strong password with at least 6 characters.">
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320 }}>
-          <input className="input" type="password" placeholder="Current password"
-            value={currentPw} onChange={e => setCurrentPw(e.target.value)} />
-          <input className="input" type="password" placeholder="New password (min. 6 chars)"
-            value={newPw} onChange={e => setNewPw(e.target.value)} />
-          <button className="btn-primary"
-            onClick={() => save({ current_password: currentPw, new_password: newPw })}
-            disabled={saving} style={{ alignSelf: "flex-start", padding: "9px 20px", fontSize: "0.82rem" }}>
-            {saving ? "Saving..." : "Update Password"}
-          </button>
-        </div>
-      </FieldRow>
-
-      {/* Location */}
-      <FieldRow
-        label="Location"
-        value={fullUser?.city && fullUser?.country ? `${fullUser.city}, ${fullUser.country}` : null}
-        hint="Helps us show you relevant auctions and sellers near you."
+      {/* ── Name card ── */}
+      <SettingCard
+        icon="👤"
+        title="Display Name"
+        description="This is how other buyers and sellers see you on BidVault."
+        error={errors.name}
+        success={success.name}
       >
+        <div style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+          <div style={{ flex: 1, maxWidth: 320 }}>
+            <Label>Name</Label>
+            <input className="input" value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Your full name" />
+          </div>
+          <button className="btn-primary"
+            onClick={() => save("name", { name })}
+            disabled={saving === "name" || name === fullUser?.name}
+            style={{ padding: "10px 22px", fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+            {saving === "name" ? "Saving..." : "Save"}
+          </button>
+        </div>
+      </SettingCard>
+
+      {/* ── Email card ── */}
+      <SettingCard
+        icon="✉️"
+        title="Email Address"
+        description="Your email is used to log in and receive notifications."
+        locked="Contact support to change your email address."
+      >
+        <div style={{
+          padding: "10px 14px", background: "var(--surface-3)",
+          border: "1px solid var(--border)", borderRadius: 2,
+          fontSize: "0.9rem", color: "var(--text-2)", maxWidth: 320,
+        }}>
+          {fullUser?.email}
+        </div>
+      </SettingCard>
+
+      {/* ── Password card ── */}
+      <SettingCard
+        icon="🔒"
+        title="Password"
+        description="Use a strong password with at least 6 characters. We recommend a mix of letters, numbers and symbols."
+        error={errors.password}
+        success={success.password}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320 }}>
+          <div>
+            <Label>Current Password</Label>
+            <input className="input" type="password" placeholder="Enter current password"
+              value={currentPw} onChange={e => setCurrentPw(e.target.value)} />
+          </div>
+          <div>
+            <Label>New Password</Label>
+            <input className="input" type="password" placeholder="Min. 6 characters"
+              value={newPw} onChange={e => setNewPw(e.target.value)} />
+          </div>
+          <button className="btn-primary"
+            onClick={() => save("password", { current_password: currentPw, new_password: newPw })}
+            disabled={saving === "password" || !currentPw || !newPw}
+            style={{ alignSelf: "flex-start", padding: "10px 22px", fontSize: "0.82rem" }}>
+            {saving === "password" ? "Updating..." : "Update Password"}
+          </button>
+        </div>
+      </SettingCard>
+
+      {/* ── Location card ── */}
+      <SettingCard
+        icon="🌍"
+        title="Location"
+        description="Helps us show you relevant auctions and sellers near you. Your location is never shared publicly."
+        error={errors.location}
+        success={success.location}
+      >
+        {fullUser?.city && fullUser?.country && (
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 8,
+            padding: "6px 12px",
+            background: "rgba(200,255,0,0.07)",
+            border: "1px solid rgba(200,255,0,0.2)",
+            borderRadius: 2, marginBottom: 14, fontSize: "0.85rem",
+          }}>
+            <span className="live-dot" style={{ width: 6, height: 6, background: "var(--lime)" }} />
+            {fullUser.city}, {fullUser.country}
+          </div>
+        )}
         <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 320 }}>
           <div>
             <Label>City</Label>
@@ -175,24 +186,76 @@ function AccountTab({ user, login }) {
           </div>
           <div>
             <Label>Country</Label>
-            <select className="input" value={country} onChange={e => setCountry(e.target.value)}
-              style={{ cursor: "pointer" }}>
+            <select className="input" value={country}
+              onChange={e => setCountry(e.target.value)} style={{ cursor: "pointer" }}>
               <option value="">Select country...</option>
               {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
           <button className="btn-primary"
-            onClick={() => save({ city, country })}
-            disabled={saving} style={{ alignSelf: "flex-start", padding: "9px 20px", fontSize: "0.82rem" }}>
-            {saving ? "Saving..." : "Save Location"}
+            onClick={() => save("location", { city, country })}
+            disabled={saving === "location" || (!city && !country)}
+            style={{ alignSelf: "flex-start", padding: "10px 22px", fontSize: "0.82rem" }}>
+            {saving === "location" ? "Saving..." : "Save Location"}
           </button>
         </div>
-      </FieldRow>
+      </SettingCard>
 
-      {/* Member since */}
-      <FieldRow label="Member Since"
-        value={fullUser?.created_at ? new Date(fullUser.created_at).toLocaleDateString("en-GB", { year: "numeric", month: "long" }) : "—"}
-        hint="Thank you for being part of BidVault." />
+      {/* ── Member since ── */}
+      <SettingCard icon="🗓️" title="Member Since" description="Thank you for being part of BidVault.">
+        <div style={{
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 700, fontSize: "1.1rem", color: "var(--text-2)",
+        }}>
+          {fullUser?.created_at
+            ? new Date(fullUser.created_at).toLocaleDateString("en-GB", { year: "numeric", month: "long" })
+            : "—"}
+        </div>
+      </SettingCard>
+
+    </div>
+  );
+}
+
+// ── Setting card ──────────────────────────────────────────────
+function SettingCard({ icon, title, description, locked, error, success, children }) {
+  return (
+    <div style={{
+      background: "var(--surface)", border: "1px solid var(--border)",
+      borderRadius: 4, overflow: "hidden",
+    }}>
+      {/* Header */}
+      <div style={{
+        display: "flex", alignItems: "flex-start", gap: 14,
+        padding: "18px 20px", borderBottom: "1px solid var(--border)",
+        background: "var(--surface-2)",
+      }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
+          background: "var(--surface-3)", border: "1px solid var(--border)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: "1rem",
+        }}>{icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontWeight: 700, fontSize: "0.92rem", marginBottom: 2 }}>{title}</div>
+          <div style={{ fontSize: "0.78rem", color: "var(--muted)", lineHeight: 1.5 }}>{description}</div>
+        </div>
+        {locked && (
+          <div style={{
+            fontSize: "0.72rem", color: "var(--muted)",
+            background: "var(--surface-3)", border: "1px solid var(--border)",
+            borderRadius: 2, padding: "4px 10px", flexShrink: 0, maxWidth: 180,
+            textAlign: "center", lineHeight: 1.4,
+          }}>{locked}</div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div style={{ padding: "20px" }}>
+        {error   && <div className="msg-error"   style={{ marginBottom: 14 }}>{error}</div>}
+        {success && <div className="msg-success" style={{ marginBottom: 14 }}>{success}</div>}
+        {children}
+      </div>
     </div>
   );
 }
