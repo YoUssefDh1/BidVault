@@ -102,7 +102,7 @@ export default function Navbar() {
         <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
           {[
             { to: "/auctions", label: "Live Auctions", show: true },
-            { to: "/products/create", label: "Consign", show: token && role === "user" },
+            { to: "/products/create", label: "Sell", show: token && role === "user" },
             { to: "/admin", label: "Dashboard", show: role === "admin" },
           ].filter(l => l.show).map(({ to, label }) => (
             <Link key={to} to={to} style={{ textDecoration: "none" }}>

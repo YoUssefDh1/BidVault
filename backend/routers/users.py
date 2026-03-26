@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel
 from typing import Optional
 
@@ -117,3 +118,62 @@ def update_profile(
     db.refresh(user)
     token = create_access_token({"sub": str(user.id), "role": "user"})
     return Token(access_token=token, role="user")
+
+
+# ── Favourites ────────────────────────────────────────────────
+@router.get("/me/favourites")
+def get_favourites(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    rows = db.execute(
+        text("SELECT auction_id FROM favourites WHERE user_id = :uid"),
+        {"uid": user.id}
+    ).fetchall()
+    ids = [r[0] for r in rows]
+    auctions = db.query(Auction).filter(Auction.id.in_(ids)).all() if ids else []
+    return [
+        {
+            "id":            a.id,
+            "status":        a.status,
+            "end_date":      a.end_date,
+            "product_title": a.product.title,
+            "product_image": a.product.images[0].url if a.product.images else None,
+            "current_price": a.product.current_price,
+            "bid_count":     len(a.bids),
+        }
+        for a in auctions
+    ]
+
+
+@router.post("/me/favourites/{auction_id}")
+def add_favourite(auction_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    if not db.get(Auction, auction_id):
+        raise HTTPException(status_code=404, detail="Auction not found")
+    existing = db.execute(
+        text("SELECT 1 FROM favourites WHERE user_id=:uid AND auction_id=:aid"),
+        {"uid": user.id, "aid": auction_id}
+    ).fetchone()
+    if not existing:
+        db.execute(
+            text("INSERT INTO favourites (user_id, auction_id) VALUES (:uid, :aid)"),
+            {"uid": user.id, "aid": auction_id}
+        )
+        db.commit()
+    return {"ok": True}
+
+
+@router.delete("/me/favourites/{auction_id}")
+def remove_favourite(auction_id: int, db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    db.execute(
+        text("DELETE FROM favourites WHERE user_id=:uid AND auction_id=:aid"),
+        {"uid": user.id, "aid": auction_id}
+    )
+    db.commit()
+    return {"ok": True}
+
+
+@router.get("/me/favourites/ids")
+def get_favourite_ids(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    rows = db.execute(
+        text("SELECT auction_id FROM favourites WHERE user_id = :uid"),
+        {"uid": user.id}
+    ).fetchall()
+    return [r[0] for r in rows]

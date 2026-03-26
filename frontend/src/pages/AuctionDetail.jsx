@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import FavouriteButton from "../components/FavouriteButton";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
@@ -61,24 +62,44 @@ export default function AuctionDetail() {
   }, [id]);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8000/bids/ws/${id}`);
-    wsRef.current = ws;
-    ws.onopen = () => setWsStatus("connected");
-    ws.onclose = () => setWsStatus("disconnected");
-    ws.onerror = () => setWsStatus("error");
-    ws.onmessage = (e) => {
-      const data = JSON.parse(e.data);
-      if (data.event === "connected") { setCurrentPrice(data.current_price); setViewers(data.viewer_count); }
-      if (data.event === "new_bid") {
-        setCurrentPrice(data.amount);
-        setViewers(data.viewer_count);
-        setBidAmount((data.amount + 1).toString());
-        setBids((prev) => [{ id: data.bid_id, amount: data.amount, bidder_name: data.bidder_name, bid_date: data.bid_date }, ...prev]);
-      }
-      if (data.event === "viewer_update") setViewers(data.viewer_count);
+    let ws = null;
+    let ping = null;
+    let cancelled = false;
+
+    const connect = () => {
+      ws = new WebSocket(`ws://localhost:8000/bids/ws/${id}`);
+      wsRef.current = ws;
+
+      ws.onopen = () => { if (!cancelled) setWsStatus("connected"); };
+      ws.onclose = () => { if (!cancelled) setWsStatus("disconnected"); };
+      ws.onerror = () => { if (!cancelled) setWsStatus("error"); };
+      ws.onmessage = (e) => {
+        if (cancelled) return;
+        const data = JSON.parse(e.data);
+        if (data.event === "connected") { setCurrentPrice(data.current_price); setViewers(data.viewer_count); }
+        if (data.event === "new_bid") {
+          setCurrentPrice(data.amount);
+          setViewers(data.viewer_count);
+          setBidAmount((data.amount + 1).toString());
+          setBids((prev) => [{ id: data.bid_id, amount: data.amount, bidder_name: data.bidder_name, bid_date: data.bid_date }, ...prev]);
+        }
+        if (data.event === "viewer_update") setViewers(data.viewer_count);
+      };
+
+      ping = setInterval(() => {
+        if (ws && ws.readyState === WebSocket.OPEN) ws.send("ping");
+      }, 20000);
     };
-    const ping = setInterval(() => { if (ws.readyState === WebSocket.OPEN) ws.send("ping"); }, 20000);
-    return () => { clearInterval(ping); ws.close(); };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      clearInterval(ping);
+      if (ws && ws.readyState !== WebSocket.CLOSED && ws.readyState !== WebSocket.CLOSING) {
+        ws.close();
+      }
+    };
   }, [id]);
 
   const placeBid = async () => {
@@ -125,7 +146,8 @@ export default function AuctionDetail() {
           <div style={{
             width: "100%", aspectRatio: "4/3", background: "var(--surface)",
             border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden",
-            display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 32,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            marginBottom: 32, position: "relative",
           }}>
             {product.images?.[0] ? (
               <img src={`http://localhost:8000${product.images[0].url}`}
@@ -133,6 +155,10 @@ export default function AuctionDetail() {
             ) : (
               <span style={{ fontSize: "6rem", opacity: 0.15 }}>🏷</span>
             )}
+            {/* Favourite button overlay */}
+            <div style={{ position: "absolute", top: 14, right: 14 }}>
+              <FavouriteButton auctionId={auction.id} size={18} />
+            </div>
           </div>
 
           {/* Meta */}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import CAT_SVG_ICONS from "../components/CategoryIcons";
 
 // ── Step config ───────────────────────────────────────────────
 const STEPS = [
@@ -389,17 +390,25 @@ export default function CreateProduct() {
               {/* Category grid selector */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 8 }}>
                 {categories.map((c) => {
-                  const icons = { "Modern Art":"🎨","Automotive":"🚗","Horology":"⌚","Jewelry & Gems":"💎","Electronics":"📱","Fashion":"👜","Collectibles":"🏆","Real Estate":"🏠","Books & Manuscripts":"📚","Wine & Spirits":"🍷","Musical Instruments":"🎸","Gaming & Consoles":"🎮","Photography Equipment":"📷" };
                   const selected = categoryId === c.id.toString();
+                  const icon = CAT_SVG_ICONS[c.name];
                   return (
                     <div key={c.id} onClick={() => setCategoryId(selected ? "" : c.id.toString())} style={{
-                      padding: "12px 10px", textAlign: "center",
+                      padding: "14px 10px", textAlign: "center",
                       border: selected ? "1px solid var(--lime)" : "1px solid var(--border)",
                       borderRadius: 2, cursor: "pointer",
                       background: selected ? "rgba(200,255,0,0.06)" : "var(--surface-2)",
-                      transition: "all 0.15s",
+                      transition: "all 0.15s", display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: 8,
                     }}>
-                      <div style={{ fontSize: "1.3rem", marginBottom: 4 }}>{icons[c.name] || "🏷"}</div>
+                      <div style={{ opacity: selected ? 1 : 0.4, transition: "opacity 0.15s" }}>
+                        {icon || (
+                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round">
+                            <circle cx="12" cy="12" r="10"/>
+                          </svg>
+                        )}
+                      </div>
                       <div style={{
                         fontSize: "0.68rem", fontFamily: "'Barlow Condensed', sans-serif",
                         fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",

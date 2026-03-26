@@ -176,3 +176,15 @@ class Notification(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     user = relationship("User", back_populates="notifications")
+
+
+# ---------------------------------------------------------------------------
+# FAVOURITES
+# ---------------------------------------------------------------------------
+from sqlalchemy import Table
+favourites_table = Table(
+    "favourites",
+    Base.metadata,
+    Column("user_id",    Integer, ForeignKey("users.id"),    primary_key=True),
+    Column("auction_id", Integer, ForeignKey("auctions.id"), primary_key=True),
+)
