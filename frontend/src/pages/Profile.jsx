@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import BackToHome from "../components/BackToHome";
 
 // Country list
 const COUNTRIES = [
@@ -374,8 +375,8 @@ function WinsTab({ wins }) {
 
 function FavouritesTab({ favourites, setFavourites }) {
   const removeFav = async (auctionId) => {
-    await api.delete(`/users/me/favourites/${auctionId}`);
-    setFavourites(prev => prev.filter(f => f.id !== auctionId));
+    await api.delete(`/favourites/${auctionId}`);
+    setFavourites(prev => prev.filter(f => f.auction_id !== auctionId));
   };
 
   if (!favourites.length) return (
@@ -387,9 +388,9 @@ function FavouritesTab({ favourites, setFavourites }) {
       <h2 style={{ fontSize: "1.6rem", fontWeight: 900, marginBottom: 28 }}>
         Favourites <span style={{ color: "var(--muted)", fontSize: "1rem", fontWeight: 400 }}>({favourites.length})</span>
       </h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <div style={{ display: "flex", flexDirection: "column" }}>
         {favourites.map((f) => (
-          <Link key={f.id} to={`/auctions/${f.id}`} style={{ textDecoration: "none" }}>
+          <Link key={f.id} to={`/auctions/${f.auction_id}`} style={{ textDecoration: "none" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 16,
               padding: "14px 0", borderBottom: "1px solid var(--border)",
@@ -398,31 +399,40 @@ function FavouritesTab({ favourites, setFavourites }) {
               onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
               onMouseLeave={e => e.currentTarget.style.opacity = "1"}
             >
+              {/* Thumbnail */}
               <div style={{
                 width: 56, height: 56, borderRadius: 2, flexShrink: 0,
                 background: "var(--surface-2)", overflow: "hidden",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                {f.product_image
-                  ? <img src={`http://localhost:8000${f.product_image}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                {f.auction?.product?.images?.[0]
+                  ? <img src={`http://localhost:8000${f.auction.product.images[0].url}`}
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <span style={{ opacity: 0.2 }}>🏷</span>}
               </div>
+
+              {/* Info */}
               <div style={{ flex: 1 }}>
-                <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 3 }}>{f.product_title}</div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <span className={`badge badge-${f.status}`}>{f.status}</span>
-                  <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{f.bid_count} bids</span>
+                <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 4 }}>
+                  {f.auction?.product?.title}
                 </div>
+                <span className={`badge badge-${f.auction?.status}`}>{f.auction?.status}</span>
               </div>
+
+              {/* Price + remove */}
               <div style={{ textAlign: "right", flexShrink: 0 }}>
-                <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.1rem", color: "var(--lime)" }}>
-                  ${f.current_price?.toLocaleString()}
+                <div style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontWeight: 900, fontSize: "1.1rem", color: "var(--lime)", marginBottom: 4,
+                }}>
+                  ${f.auction?.product?.current_price?.toLocaleString()}
                 </div>
-                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFav(f.id); }}
+                <button
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFav(f.auction_id); }}
                   style={{
                     background: "transparent", border: "none", cursor: "pointer",
-                    fontSize: "0.72rem", color: "var(--muted)", marginTop: 4,
-                    padding: 0, transition: "color 0.15s",
+                    fontSize: "0.72rem", color: "var(--muted)", padding: 0,
+                    transition: "color 0.15s",
                   }}
                   onMouseEnter={e => e.currentTarget.style.color = "var(--danger)"}
                   onMouseLeave={e => e.currentTarget.style.color = "var(--muted)"}
@@ -466,7 +476,7 @@ export default function Profile() {
       api.get("/bids/mine").then(({ data }) => setBids(data)),
       api.get("/products/seller/mine").then(({ data }) => setProducts(data)),
       api.get("/users/me/wins").then(({ data }) => setWins(data)),
-      api.get("/users/me/favourites").then(({ data }) => setFavourites(data)),
+      api.get("/favourites").then(({ data }) => setFavourites(data)),
       api.get("/users/me/stats").then(({ data }) => setStats(data)),
     ]).finally(() => setLoading(false));
   }, []);
@@ -481,6 +491,7 @@ export default function Profile() {
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px" }}>
+        <BackToHome />
 
       {/* Hello heading */}
       <h1 style={{

@@ -89,8 +89,21 @@ export default function CategoryBar() {
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
             borderBottom: !activeCatId ? "2px solid var(--lime)" : "2px solid transparent",
-            transition: "all 0.15s",
-          }}>
+            transition: "all 0.2s ease", transform: "translateY(0)",
+          }}
+            onMouseEnter={e => {
+              if (activeCatId) {
+                e.currentTarget.style.transform = "translateY(-3px)";
+                e.currentTarget.style.borderBottomColor = "rgba(200,255,0,0.3)";
+              }
+            }}
+            onMouseLeave={e => {
+              if (activeCatId) {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.borderBottomColor = "transparent";
+              }
+            }}
+          >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
               stroke={!activeCatId ? "var(--lime)" : "var(--muted)"}
               strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -109,12 +122,35 @@ export default function CategoryBar() {
             const isActive = activeCatId === cat.id;
             const IconFn   = CAT_SVG_ICONS[cat.name];
             return (
-              <div key={cat.id} onClick={() => handleCat(cat)} style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
-                borderBottom: isActive ? "2px solid var(--lime)" : "2px solid transparent",
-                transition: "all 0.15s",
-              }}>
+              <div key={cat.id} onClick={() => handleCat(cat)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center",
+                  gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
+                  borderBottom: isActive ? "2px solid var(--lime)" : "2px solid transparent",
+                  transition: "all 0.2s ease",
+                  transform: "translateY(0)",
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.transform = "translateY(-3px)";
+                    e.currentTarget.style.borderBottomColor = "rgba(200,255,0,0.3)";
+                    const label = e.currentTarget.querySelector("span");
+                    if (label) label.style.color = "var(--text-2)";
+                    const svg = e.currentTarget.querySelector("svg");
+                    if (svg) svg.setAttribute("stroke", "var(--text-2)");
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.borderBottomColor = "transparent";
+                    const label = e.currentTarget.querySelector("span");
+                    if (label) label.style.color = "var(--muted)";
+                    const svg = e.currentTarget.querySelector("svg");
+                    if (svg) svg.setAttribute("stroke", "var(--muted)");
+                  }
+                }}
+              >
                 {IconFn ? IconFn({ active: isActive }) : (
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
                     stroke={isActive ? "var(--lime)" : "var(--muted)"}
@@ -126,7 +162,7 @@ export default function CategoryBar() {
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                   fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase",
                   color: isActive ? "var(--lime)" : "var(--muted)",
-                  whiteSpace: "nowrap", transition: "color 0.15s",
+                  whiteSpace: "nowrap", transition: "color 0.2s",
                 }}>{cat.name}</span>
               </div>
             );

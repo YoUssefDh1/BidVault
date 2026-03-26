@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import api from "../api";
+import BackToHome from "../components/BackToHome";
+import FavouriteButton from "../components/FavouriteButton";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
@@ -50,6 +52,9 @@ function AuctionCard({ auction }) {
             <span className="live-dot" style={{ width: 5, height: 5 }} /> LIVE
           </div>
         )}
+        <div style={{ position: "absolute", top: 8, right: 8 }}>
+          <FavouriteButton auctionId={auction.id} size={15} />
+        </div>
       </div>
 
       {/* Body */}
@@ -66,7 +71,7 @@ function AuctionCard({ auction }) {
         <p style={{
           fontSize: "0.76rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.5, flex: 1,
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-        }}>{product.description}</p>
+        }} dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
         <div style={{
           display: "flex", justifyContent: "space-between", alignItems: "flex-end",
@@ -152,6 +157,7 @@ export default function AuctionList() {
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px" }}>
+        <BackToHome />
 
       {/* Top bar */}
       <div style={{

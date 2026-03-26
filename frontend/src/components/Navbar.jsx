@@ -318,6 +318,7 @@ function ProfileDropdown({ user, role, onLogout, navigate }) {
     { label: "My Bids",        icon: "🏷", tab: "bids" },
     { label: "My Listings",    icon: "📦", tab: "listings" },
     { label: "Won Auctions",   icon: "🏆", tab: "wins" },
+    { label: "Favourites",     icon: "🤍", tab: "favourites" },
     { label: "Edit Profile",   icon: "⚙️", tab: "account" },
   ];
 
@@ -331,27 +332,32 @@ function ProfileDropdown({ user, role, onLogout, navigate }) {
         borderRadius: 2, cursor: "pointer", transition: "border-color 0.15s",
         userSelect: "none",
       }}>
+        {/* Person icon */}
         <div style={{
-          width: 26, height: 26, borderRadius: "50%",
-          background: "var(--lime)", display: "flex", alignItems: "center",
-          justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 900, fontSize: "0.8rem", color: "#000", flexShrink: 0,
+          width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
+          background: "var(--surface-3)",
+          border: `1px solid ${open ? "var(--lime)" : "var(--border-2)"}`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "border-color 0.15s",
         }}>
-          {user?.name?.[0]?.toUpperCase() || "U"}
-        </div>
-        <div>
-          <div style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text)", lineHeight: 1.2 }}>
-            {user?.name || user?.email}
-          </div>
-          <div style={{
-            fontSize: "0.62rem", color: "var(--lime)",
-            fontFamily: "'Barlow Condensed', sans-serif",
-            textTransform: "uppercase", letterSpacing: "0.1em",
-          }}>{role}</div>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+            stroke={open ? "var(--lime)" : "var(--text-2)"}
+            strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            style={{ transition: "stroke 0.15s" }}>
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
         </div>
         <span style={{
+          fontSize: "0.82rem", fontWeight: 600,
+          color: open ? "var(--lime)" : "var(--text)",
+          transition: "color 0.15s",
+        }}>
+          {user?.name?.split(" ")[0] || user?.email?.split("@")[0]}
+        </span>
+        <span style={{
           fontSize: "1.4rem", color: "var(--lime)",
-          marginLeft: 4,
+          marginLeft: 2,
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           transform: open ? "rotate(270deg)" : "rotate(90deg)",
           transition: "transform 0.2s",

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api";
+import BackToHome from "../components/BackToHome";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
 
 // ── Step config ───────────────────────────────────────────────
@@ -319,6 +320,7 @@ export default function CreateProduct() {
 
   return (
     <div style={{ maxWidth: 720, margin: "0 auto", padding: "56px 32px" }}>
+        <BackToHome />
 
       {/* Page title */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>

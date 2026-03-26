@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../api";
+import BackToHome from "../components/BackToHome";
 
 const Label = ({ children }) => (
   <div style={{
@@ -108,6 +109,7 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "48px 32px" }}>
+        <BackToHome />
 
       {/* Header */}
       <div style={{ marginBottom: 32 }}>

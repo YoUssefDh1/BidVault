@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import BackToHome from "../components/BackToHome";
 import FavouriteButton from "../components/FavouriteButton";
 
 function Countdown({ endDate }) {
@@ -126,6 +127,7 @@ export default function AuctionDetail() {
 
   return (
     <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px" }}>
+        <BackToHome />
 
       {/* Breadcrumb */}
       <div style={{ padding: "16px 0", borderBottom: "1px solid var(--border)", marginBottom: 32, display: "flex", alignItems: "center", gap: 8 }}>
@@ -177,8 +179,8 @@ export default function AuctionDetail() {
           <h1 style={{ fontSize: "2.4rem", fontWeight: 900, marginBottom: 16, lineHeight: 1 }}>
             {product.title}
           </h1>
-          <p style={{ color: "var(--muted)", lineHeight: 1.8, marginBottom: 28, fontSize: "0.92rem" }}>
-            {product.description || "No description provided."}
+          <p style={{ color: "var(--muted)", lineHeight: 1.8, marginBottom: 28, fontSize: "0.92rem" }} dangerouslySetInnerHTML={{ __html: product.description || "<em style='color:var(--muted)'>No description provided.</em>" }}>
+            
           </p>
 
           {/* Seller */}

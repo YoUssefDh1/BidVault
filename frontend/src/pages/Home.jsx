@@ -68,7 +68,7 @@ function SmallCard({ auction }) {
           <p style={{
             fontSize: "0.76rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.5, flex: 1,
             display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}>{product.description}</p>
+          }} dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
             <div>
@@ -161,7 +161,7 @@ function FeaturedCard({ auction }) {
             lineHeight: 1.6, marginBottom: 24, maxWidth: 400,
             display: "-webkit-box", WebkitLineClamp: 2,
             WebkitBoxOrient: "vertical", overflow: "hidden",
-          }}>{product.description}</p>
+          }} dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
           {/* Bid row */}
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
