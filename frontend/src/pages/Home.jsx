@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
@@ -52,10 +52,10 @@ function SmallCard({ auction }) {
             <div style={{
               position: "absolute", top: 8, left: 8,
               display: "flex", alignItems: "center", gap: 4,
-              background: "rgba(0,0,0,0.85)", border: "1px solid var(--lime)",
+              background: "rgba(0,0,0,0.85)", border: "1px solid var(--primary)",
               padding: "2px 7px", borderRadius: 1,
               fontFamily: "'Barlow Condensed', sans-serif",
-              fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--lime)",
+              fontSize: "0.6rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--primary)",
             }}>
               <span className="live-dot" style={{ width: 5, height: 5 }} /> LIVE
             </div>
@@ -82,7 +82,7 @@ function SmallCard({ auction }) {
                 <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Ends In</div>
                 <Countdown endDate={auction.end_date} style={{
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
-                  fontSize: "0.95rem", color: "var(--lime)",
+                  fontSize: "0.95rem", color: "var(--primary)",
                 }} />
               </div>
             )}
@@ -90,7 +90,7 @@ function SmallCard({ auction }) {
 
           <div style={{
             width: "100%", padding: "9px", textAlign: "center",
-            background: "transparent", border: "1px solid var(--border-2)",
+            background: "transparent", border: "1px solid var(--border-strong)",
             fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
             fontSize: "0.76rem", letterSpacing: "0.1em", color: "var(--text)",
             cursor: "pointer",
@@ -125,7 +125,7 @@ function FeaturedCard({ auction }) {
         {/* Viewers badge top right */}
         <div style={{
           position: "absolute", top: 16, right: 16,
-          background: "rgba(0,0,0,0.7)", border: "1px solid var(--border-2)",
+          background: "rgba(0,0,0,0.7)", border: "1px solid var(--border-strong)",
           padding: "4px 10px", borderRadius: 2,
           fontFamily: "'Barlow Condensed', sans-serif",
           fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.08em",
@@ -145,7 +145,7 @@ function FeaturedCard({ auction }) {
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 700, fontSize: "0.68rem",
             letterSpacing: "0.15em", textTransform: "uppercase",
-            color: "var(--lime)", marginBottom: 8,
+            color: "var(--primary)", marginBottom: 8,
           }}>
             ◆ PREMIUM LOT
           </div>
@@ -180,7 +180,7 @@ function FeaturedCard({ auction }) {
               </div>
             </div>
             <div style={{
-              background: "var(--lime)", color: "#000",
+              background: "var(--primary)", color: "var(--bg)",
               fontFamily: "'Barlow Condensed', sans-serif",
               fontWeight: 900, fontSize: "0.9rem",
               letterSpacing: "0.1em", textTransform: "uppercase",
@@ -200,15 +200,15 @@ function FeaturedCard({ auction }) {
 function Ticker({ auctions }) {
   const items = auctions.slice(0, 8);
   if (!items.length) return null;
-  const content = items.map((a, i) => (
+  const content = items.map((a) => (
     `BID PLACED: ${a.product?.title?.toUpperCase()} — $${a.product?.current_price?.toLocaleString()}`
   )).join("   ·   ");
   const doubled = content + "   ·   " + content;
 
   return (
     <div style={{
-      background: "var(--lime)", color: "#000", overflow: "hidden",
-      padding: "8px 0", borderTop: "1px solid #000", borderBottom: "1px solid #000",
+      background: "var(--primary)", color: "var(--bg)", overflow: "hidden",
+      padding: "8px 0", borderTop: "1px solid var(--bg)", borderBottom: "1px solid var(--bg)",
     }}>
       <div className="ticker-track">
         <span style={{
@@ -262,7 +262,7 @@ export default function Home() {
         {/* Subtle background grain */}
         <div style={{
           position: "absolute", inset: 0,
-          background: "radial-gradient(ellipse at 60% 50%, rgba(200,255,0,0.03) 0%, transparent 60%)",
+          background: "radial-gradient(ellipse at 60% 50%, rgba(136,192,208,0.03) 0%, transparent 60%)",
           pointerEvents: "none",
         }} />
 
@@ -271,7 +271,7 @@ export default function Home() {
           <div className="animate-fade-up" style={{ maxWidth: 680 }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
-              border: "1px solid var(--border-2)", borderRadius: 2,
+              border: "1px solid var(--border-strong)", borderRadius: 2,
               padding: "4px 12px", marginBottom: 32,
             }}>
               <span className="live-dot" />
@@ -279,7 +279,7 @@ export default function Home() {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 700, fontSize: "0.72rem",
                 letterSpacing: "0.12em", textTransform: "uppercase",
-                color: "var(--lime)",
+                color: "var(--primary)",
               }}>Live Market Open</span>
             </div>
 
@@ -336,7 +336,7 @@ export default function Home() {
               width: 380,
               background: "rgba(13,13,13,0.94)",
               backdropFilter: "blur(16px)",
-              border: "1px solid var(--border-2)",
+              border: "1px solid var(--border-strong)",
               borderRadius: 4,
               overflow: "hidden",
               boxShadow: "0 32px 80px rgba(0,0,0,0.7)",
@@ -363,10 +363,10 @@ export default function Home() {
                 <div style={{
                   position: "absolute", top: 12, right: 12, zIndex: 2,
                   display: "flex", alignItems: "center", gap: 5,
-                  background: "rgba(0,0,0,0.85)", border: "1px solid var(--lime)",
+                  background: "rgba(0,0,0,0.85)", border: "1px solid var(--primary)",
                   padding: "3px 10px", borderRadius: 2,
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--lime)",
+                  fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--primary)",
                 }}>
                   <span className="live-dot" style={{ width: 5, height: 5 }} /> LIVE
                 </div>
@@ -405,7 +405,7 @@ export default function Home() {
                     </div>
                     <Countdown endDate={featured.end_date} style={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      fontWeight: 900, fontSize: "1.1rem", color: "var(--lime)",
+                      fontWeight: 900, fontSize: "1.1rem", color: "var(--primary)",
                     }} />
                   </div>
                 </div>
@@ -486,18 +486,18 @@ export default function Home() {
                 display: "flex", flexDirection: "column",
                 alignItems: "center", justifyContent: "center",
                 textAlign: "center", padding: 32,
-                background: "var(--text)", color: "#000",
+                background: "var(--text)", color: "var(--bg)",
                 border: "1px solid var(--border)",
               }}>
                 <h3 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontSize: "2rem", fontWeight: 900,
                   marginBottom: 12, lineHeight: 1,
-                  color: "#000",
+                  color: "var(--bg)",
                 }}>
                   LIST YOUR<br />COLLECTION
                 </h3>
-                <p style={{ fontSize: "0.82rem", marginBottom: 24, lineHeight: 1.6, color: "#444", maxWidth: 200 }}>
+                <p style={{ fontSize: "0.82rem", marginBottom: 24, lineHeight: 1.6, color: "var(--text-secondary)", maxWidth: 200 }}>
                   Access a global network of qualified buyers with zero friction.
                 </p>
                 <Link to={token ? "/products/create" : "/register"}>
@@ -526,7 +526,7 @@ export default function Home() {
             fontSize: "2.2rem", fontWeight: 900, marginBottom: 40,
             textAlign: "center",
           }}>
-            Why <span style={{ color: "var(--lime)" }}>BidVault</span>?
+            Why <span style={{ color: "var(--primary)" }}>BidVault</span>?
           </h2>
           <div style={{
             display: "grid", gridTemplateColumns: "repeat(4, 1fr)",
@@ -535,7 +535,7 @@ export default function Home() {
             {[
               {
                 icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                   </svg>
                 ),
@@ -544,7 +544,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
                   </svg>
                 ),
@@ -553,7 +553,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
                   </svg>
                 ),
@@ -562,7 +562,7 @@ export default function Home() {
               },
               {
                 icon: (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
                     <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
                   </svg>
@@ -578,8 +578,8 @@ export default function Home() {
               }}>
                 <div style={{
                   width: 44, height: 44, borderRadius: "50%",
-                  background: "rgba(200,255,0,0.08)",
-                  border: "1px solid rgba(200,255,0,0.2)",
+                  background: "rgba(136,192,208,0.08)",
+                  border: "1px solid rgba(136,192,208,0.2)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "1.3rem", flexShrink: 0,
                 }}>{icon}</div>
@@ -609,7 +609,7 @@ export default function Home() {
                 fontWeight: 900, fontSize: "1.8rem",
                 color: "var(--text)", marginBottom: 16, letterSpacing: "0.02em",
               }}>
-                BID<span style={{ color: "var(--lime)" }}>VAULT</span><span style={{ color: "var(--lime)" }}>.</span>
+                BID<span style={{ color: "var(--primary)" }}>VAULT</span><span style={{ color: "var(--primary)" }}>.</span>
               </div>
               <p style={{ color: "var(--muted)", fontSize: "0.82rem", lineHeight: 1.7, maxWidth: 260 }}>
                 The professional auction platform for exclusive items. Real-time bidding, transparent results.

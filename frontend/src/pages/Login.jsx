@@ -2,22 +2,29 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmitClick = (e) => {
     e.preventDefault();
+    setDialogOpen(true);
+  };
+
+  const handleConfirmLogin = async () => {
     setError("");
     setLoading(true);
     try {
       const { data } = await api.post("/auth/login", { email, password });
       login(data.access_token, data.role, { email });
+      setDialogOpen(false);
       // Auto-redirect based on role
       navigate(data.role === "admin" ? "/admin" : "/");
     } catch (err) {
@@ -45,7 +52,7 @@ export default function Login() {
         <div className="card" style={{ padding: 28 }}>
           {error && <div className="msg-error" style={{ marginBottom: 20 }}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <form onSubmit={handleSubmitClick} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
               <label>Email</label>
               <input
@@ -78,6 +85,16 @@ export default function Login() {
             </button>
           </form>
         </div>
+
+        <ConfirmationDialog
+          isOpen={dialogOpen}
+          title="Sign In"
+          message={`Sign in with email: ${email}?`}
+          onConfirm={handleConfirmLogin}
+          onCancel={() => setDialogOpen(false)}
+          confirmText="Sign In"
+          isLoading={loading}
+        />
 
         <p style={{ textAlign: "center", marginTop: 20, color: "var(--muted)", fontSize: "0.875rem" }}>
           Don't have an account?{" "}

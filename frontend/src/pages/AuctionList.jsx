@@ -6,6 +6,7 @@ import FavouriteButton from "../components/FavouriteButton";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
+  const [timerClass, setTimerClass] = useState("timer-normal");
   useEffect(() => {
     const tick = () => {
       const diff = new Date(endDate) - new Date();
@@ -13,13 +14,23 @@ function Countdown({ endDate }) {
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
+      
+      // Dynamic timer coloring based on urgency
+      if (diff < 60000) {
+        setTimerClass("timer-danger");
+      } else if (diff < 300000) {
+        setTimerClass("timer-warning");
+      } else {
+        setTimerClass("timer-normal");
+      }
+      
       setTime(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
     };
     tick();
     const id = setInterval(tick, 1000);
     return () => clearInterval(id);
   }, [endDate]);
-  return <span>{time}</span>;
+  return <span className={timerClass}>{time}</span>;
 }
 
 function AuctionCard({ auction }) {
@@ -43,11 +54,11 @@ function AuctionCard({ auction }) {
           <div style={{
             position: "absolute", top: 8, left: 8,
             display: "flex", alignItems: "center", gap: 4,
-            background: "rgba(0,0,0,0.85)", border: "1px solid var(--lime)",
+            background: "rgba(0,0,0,0.85)", border: "1px solid var(--primary)",
             padding: "2px 7px", borderRadius: 2,
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: "0.62rem", fontWeight: 700,
-            letterSpacing: "0.1em", color: "var(--lime)",
+            letterSpacing: "0.1em", color: "var(--primary)",
           }}>
             <span className="live-dot" style={{ width: 5, height: 5 }} /> LIVE
           </div>
@@ -86,7 +97,7 @@ function AuctionCard({ auction }) {
           {auction.status === "active" && (
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: "0.6rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'Barlow Condensed', sans-serif" }}>Ends In</div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "0.95rem", color: "var(--lime)" }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "0.95rem" }}>
                 <Countdown endDate={auction.end_date} />
               </div>
             </div>
@@ -207,9 +218,9 @@ export default function AuctionList() {
                   });
                 }} style={{
                   padding: "6px 0", fontSize: "0.85rem",
-                  color: active ? "var(--lime)" : "var(--text-2)",
+                  color: active ? "var(--primary)" : "var(--text-2)",
                   cursor: "pointer", fontWeight: active ? 600 : 400,
-                  borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                  borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
                   paddingLeft: 10, transition: "all 0.15s",
                 }}>
                   {c.name}
@@ -234,9 +245,9 @@ export default function AuctionList() {
                   <div key={val} onClick={() => setFilter("subcategory_id", val)}
                     style={{
                       padding: "5px 0", fontSize: "0.82rem",
-                      color: active ? "var(--lime)" : "var(--muted)",
+                      color: active ? "var(--primary)" : "var(--muted)",
                       cursor: "pointer", fontWeight: active ? 600 : 400,
-                      borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                      borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
                       paddingLeft: 10, transition: "all 0.15s",
                     }}>
                     {s.name}
@@ -266,8 +277,8 @@ export default function AuctionList() {
                   style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0", cursor: "pointer" }}>
                   <div style={{
                     width: 12, height: 12, borderRadius: "50%",
-                    border: `2px solid ${active ? "var(--lime)" : "var(--border-2)"}`,
-                    background: active ? "var(--lime)" : "transparent",
+                    border: `2px solid ${active ? "var(--primary)" : "var(--border-strong)"}`,
+                    background: active ? "var(--primary)" : "transparent",
                     transition: "all 0.15s", flexShrink: 0,
                   }} />
                   <span style={{
@@ -303,9 +314,9 @@ export default function AuctionList() {
                 <div key={value} onClick={() => setFilter("sort_by", value)}
                   style={{
                     padding: "5px 0 5px 10px", fontSize: "0.82rem", cursor: "pointer",
-                    color: active ? "var(--lime)" : "var(--muted)",
+                    color: active ? "var(--primary)" : "var(--muted)",
                     fontWeight: active ? 600 : 400,
-                    borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                    borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
                     transition: "all 0.15s",
                   }}>
                   {label}
@@ -344,7 +355,7 @@ export default function AuctionList() {
             </div>
             {(minPrice || maxPrice) && (
               <div onClick={() => { setMinInput(""); setMaxInput(""); setSearchParams(prev => { const next = new URLSearchParams(prev); next.delete("min_price"); next.delete("max_price"); return next; }); }}
-                style={{ fontSize: "0.72rem", color: "var(--lime)", cursor: "pointer", paddingLeft: 2 }}>
+                style={{ fontSize: "0.72rem", color: "var(--primary)", cursor: "pointer", paddingLeft: 2 }}>
                 ✕ Clear price
               </div>
             )}

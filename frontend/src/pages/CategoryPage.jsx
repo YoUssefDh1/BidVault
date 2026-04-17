@@ -53,8 +53,8 @@ export default function CategoryPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 40 }}>
           <div style={{
             width: 48, height: 48, borderRadius: "50%",
-            background: "rgba(200,255,0,0.08)",
-            border: "1px solid rgba(200,255,0,0.2)",
+            background: "rgba(136,192,208,0.08)",
+            border: "1px solid rgba(136,192,208,0.2)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
@@ -101,8 +101,8 @@ export default function CategoryPage() {
                   gap: 16,
                 }}
                   onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = "var(--lime)";
-                    e.currentTarget.style.background = "rgba(200,255,0,0.03)";
+                    e.currentTarget.style.borderColor = "var(--primary)";
+                    e.currentTarget.style.background = "rgba(136,192,208,0.03)";
                   }}
                   onMouseLeave={e => {
                     e.currentTarget.style.borderColor = "var(--border)";

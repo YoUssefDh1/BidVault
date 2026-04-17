@@ -1,6 +1,6 @@
 const s = (active) => ({
   width: 22, height: 22, viewBox: "0 0 24 24", fill: "none",
-  stroke: active ? "var(--lime)" : "var(--muted)",
+  stroke: active ? "var(--primary)" : "var(--muted)",
   strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round",
   style: { transition: "stroke 0.2s ease" },
 });

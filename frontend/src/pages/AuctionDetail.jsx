@@ -7,7 +7,7 @@ import FavouriteButton from "../components/FavouriteButton";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
-  const [urgent, setUrgent] = useState(false);
+  const [timerClass, setTimerClass] = useState("timer-normal");
   useEffect(() => {
     const tick = () => {
       const diff = new Date(endDate) - new Date();
@@ -15,7 +15,16 @@ function Countdown({ endDate }) {
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
-      setUrgent(diff < 3600000);
+      
+      // Dynamic timer coloring based on urgency
+      if (diff < 60000) {
+        setTimerClass("timer-danger");
+      } else if (diff < 300000) {
+        setTimerClass("timer-warning");
+      } else {
+        setTimerClass("timer-normal");
+      }
+      
       setTime(`${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`);
     };
     tick();
@@ -23,10 +32,9 @@ function Countdown({ endDate }) {
     return () => clearInterval(id);
   }, [endDate]);
   return (
-    <span style={{
+    <span className={timerClass} style={{
       fontFamily: "'Barlow Condensed', sans-serif",
       fontWeight: 900, fontSize: "2.4rem",
-      color: urgent ? "var(--danger)" : "var(--lime)",
       letterSpacing: "0.04em", transition: "color 0.3s",
     }}>{time}</span>
   );
@@ -191,9 +199,9 @@ export default function AuctionDetail() {
           }}>
             <div style={{
               width: 36, height: 36, borderRadius: "50%",
-              background: "var(--lime)", display: "flex", alignItems: "center",
+              background: "var(--primary)", display: "flex", alignItems: "center",
               justifyContent: "center", fontFamily: "'Barlow Condensed', sans-serif",
-              fontWeight: 900, color: "#000", fontSize: "1rem",
+              fontWeight: 900, color: "var(--bg)", fontSize: "1rem",
             }}>{product.seller?.name?.[0]?.toUpperCase()}</div>
             <div>
               <div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'Barlow Condensed', sans-serif" }}>Seller</div>
@@ -220,18 +228,18 @@ export default function AuctionDetail() {
                     display: "flex", justifyContent: "space-between", alignItems: "center",
                     padding: "12px 0", borderBottom: "1px solid var(--border)",
                     animation: i === 0 ? "slideInBid 0.4s cubic-bezier(0.16,1,0.3,1)" : "none",
-                    background: i === 0 ? "rgba(200,255,0,0.03)" : "transparent",
+                    background: i === 0 ? "rgba(136,192,208,0.03)" : "transparent",
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                       {/* Avatar */}
                       <div style={{
                         width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                        background: i === 0 ? "var(--lime)" : "var(--surface-3)",
+                        background: i === 0 ? "var(--primary)" : "var(--surface-3)",
                         border: i === 0 ? "none" : "1px solid var(--border)",
                         display: "flex", alignItems: "center", justifyContent: "center",
                         fontFamily: "'Barlow Condensed', sans-serif",
                         fontWeight: 900, fontSize: "0.78rem",
-                        color: i === 0 ? "#000" : "var(--muted)",
+                        color: i === 0 ? "var(--bg)" : "var(--muted)",
                         transition: "all 0.3s",
                       }}>
                         {bid.bidder_name?.[0]?.toUpperCase() || "?"}
@@ -247,8 +255,8 @@ export default function AuctionDetail() {
                               fontFamily: "'Barlow Condensed', sans-serif",
                               fontSize: "0.6rem", fontWeight: 800,
                               letterSpacing: "0.1em", textTransform: "uppercase",
-                              background: "rgba(200,255,0,0.12)",
-                              color: "var(--lime)", padding: "1px 6px", borderRadius: 2,
+                              background: "var(--primary-soft)",
+                              color: "var(--primary)", padding: "1px 6px", borderRadius: 2,
                             }}>LEADING</span>
                           )}
                         </div>
@@ -259,7 +267,7 @@ export default function AuctionDetail() {
                     </div>
                     <div style={{
                       fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
-                      color: i === 0 ? "var(--lime)" : "var(--text-2)",
+                      color: i === 0 ? "var(--primary)" : "var(--text-2)",
                       fontSize: i === 0 ? "1.2rem" : "1rem",
                       transition: "all 0.3s",
                     }}>${bid.amount?.toLocaleString()}</div>

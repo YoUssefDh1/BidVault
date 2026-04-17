@@ -11,7 +11,7 @@ export default function BackToHome() {
         cursor: "pointer", transition: "color 0.15s",
         marginBottom: 24,
       }}
-        onMouseEnter={e => e.currentTarget.style.color = "var(--lime)"}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--primary)"}
         onMouseLeave={e => e.currentTarget.style.color = "var(--muted)"}
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none"

@@ -10,7 +10,6 @@ export default function Navbar() {
   const { token, role, user, logout } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
-  const isActive = (path) => location.pathname === path;
 
   const [authModal, setAuthModal]      = useState(null); // "login" | "register" | null
   const [search, setSearch]           = useState("");
@@ -23,7 +22,9 @@ export default function Navbar() {
 
   // ── Fetch suggestions with debounce ──────────────────────────
   useEffect(() => {
-    if (search.trim().length < 2) { setSuggestions([]); setShowDrop(false); return; }
+    if (search.trim().length < 2) return;
+    setSuggestions([]);
+    setShowDrop(false);
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
@@ -93,8 +94,8 @@ export default function Navbar() {
             fontWeight: 900, fontSize: "1.5rem",
             color: "var(--text)", letterSpacing: "0.02em", textTransform: "uppercase",
           }}>
-            BID<span style={{ color: "var(--lime)" }}>VAULT</span>
-            <span style={{ color: "var(--lime)", fontSize: "1.1rem" }}>.</span>
+            BID<span style={{ color: "var(--primary)" }}>VAULT</span>
+            <span style={{ color: "var(--primary)", fontSize: "1.1rem" }}>.</span>
           </span>
         </Link>
 
@@ -111,8 +112,8 @@ export default function Navbar() {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 700, fontSize: "0.85rem",
                 letterSpacing: "0.08em", textTransform: "uppercase",
-                color: location.pathname === to ? "var(--lime)" : "var(--text-2)",
-                borderBottom: location.pathname === to ? "2px solid var(--lime)" : "2px solid transparent",
+                color: location.pathname === to ? "var(--primary)" : "var(--text-2)",
+                borderBottom: location.pathname === to ? "2px solid var(--primary)" : "2px solid transparent",
                 transition: "all 0.15s ease", display: "block", paddingBottom: 4,
               }}>{label}</span>
             </Link>
@@ -127,7 +128,7 @@ export default function Navbar() {
           <div style={{
             display: "flex", alignItems: "center",
             background: "var(--surface-2)",
-            border: `1px solid ${focused ? "var(--lime)" : "var(--border)"}`,
+            border: `1px solid ${focused ? "var(--primary)" : "var(--border)"}`,
             borderRadius: showDrop && suggestions.length > 0 ? "2px 2px 0 0" : 2,
             overflow: "hidden", transition: "border-color 0.15s ease",
           }}>
@@ -151,7 +152,7 @@ export default function Navbar() {
             />
             {search && (
               <button type="submit" style={{
-                background: "var(--lime)", border: "none", cursor: "pointer",
+                background: "var(--primary)", border: "none", cursor: "pointer",
                 padding: "0 14px", alignSelf: "stretch",
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 800, fontSize: "0.72rem",
@@ -164,7 +165,7 @@ export default function Navbar() {
           {showDrop && suggestions.length > 0 && (
             <div style={{
               position: "absolute", top: "100%", left: 0, right: 0, zIndex: 200,
-              background: "var(--surface)", border: "1px solid var(--lime)",
+              background: "var(--surface)", border: "1px solid var(--primary)",
               borderTop: "none", borderRadius: "0 0 2px 2px",
               overflow: "hidden",
               boxShadow: "0 12px 32px rgba(0,0,0,0.6)",
@@ -176,7 +177,7 @@ export default function Navbar() {
                   style={{
                     padding: "10px 14px",
                     display: "flex", alignItems: "center", gap: 12,
-                    background: i === activeIdx ? "rgba(200,255,0,0.07)" : "transparent",
+                      background: i === activeIdx ? "rgba(136,192,208,0.07)" : "transparent",
                     borderBottom: i < suggestions.length - 1 ? "1px solid var(--border)" : "none",
                     cursor: "pointer", transition: "background 0.1s",
                   }}>
@@ -218,7 +219,7 @@ export default function Navbar() {
                       ${a.product?.current_price?.toLocaleString()}
                     </div>
                     <div style={{
-                      fontSize: "0.62rem", color: a.status === "active" ? "var(--lime)" : "var(--muted)",
+                      fontSize: "0.62rem", color: a.status === "active" ? "var(--primary)" : "var(--muted)",
                       fontFamily: "'Barlow Condensed', sans-serif",
                       textTransform: "uppercase", letterSpacing: "0.08em",
                       display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end",
@@ -239,7 +240,7 @@ export default function Navbar() {
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 700, fontSize: "0.72rem",
                   letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "var(--lime)",
+                  color: "var(--primary)",
                   borderTop: "1px solid var(--border)",
                 }}>
                 View all results for "{search}" →
@@ -290,7 +291,7 @@ function highlightMatch(text, query) {
   return (
     <>
       {text.slice(0, idx)}
-      <span style={{ color: "var(--lime)", fontWeight: 700 }}>
+      <span style={{ color: "var(--primary)", fontWeight: 700 }}>
         {text.slice(idx, idx + query.length)}
       </span>
       {text.slice(idx + query.length)}
@@ -299,7 +300,7 @@ function highlightMatch(text, query) {
 }
 
 // ── Profile Dropdown ──────────────────────────────────────────
-function ProfileDropdown({ user, role, onLogout, navigate }) {
+function ProfileDropdown({ user, onLogout, navigate }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 
@@ -328,7 +329,7 @@ function ProfileDropdown({ user, role, onLogout, navigate }) {
       {/* Trigger */}
       <div onClick={() => setOpen(o => !o)} style={{
         display: "flex", alignItems: "center", gap: 8,
-        padding: "5px 12px", border: `1px solid ${open ? "var(--lime)" : "var(--border-2)"}`,
+        padding: "5px 12px", border: `1px solid ${open ? "var(--primary)" : "var(--border-2)"}`,
         borderRadius: 2, cursor: "pointer", transition: "border-color 0.15s",
         userSelect: "none",
       }}>
@@ -336,12 +337,12 @@ function ProfileDropdown({ user, role, onLogout, navigate }) {
         <div style={{
           width: 28, height: 28, borderRadius: "50%", flexShrink: 0,
           background: "var(--surface-3)",
-          border: `1px solid ${open ? "var(--lime)" : "var(--border-2)"}`,
+          border: `1px solid ${open ? "var(--primary)" : "var(--border-2)"}`,
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "border-color 0.15s",
         }}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
-            stroke={open ? "var(--lime)" : "var(--text-2)"}
+            stroke={open ? "var(--primary)" : "var(--text-2)"}
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             style={{ transition: "stroke 0.15s" }}>
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
@@ -350,13 +351,13 @@ function ProfileDropdown({ user, role, onLogout, navigate }) {
         </div>
         <span style={{
           fontSize: "0.82rem", fontWeight: 600,
-          color: open ? "var(--lime)" : "var(--text)",
+          color: open ? "var(--primary)" : "var(--text)",
           transition: "color 0.15s",
         }}>
           {user?.name?.split(" ")[0] || user?.email?.split("@")[0]}
         </span>
         <span style={{
-          fontSize: "1.4rem", color: "var(--lime)",
+          fontSize: "1.4rem", color: "var(--primary)",
           marginLeft: 2,
           fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900,
           transform: open ? "rotate(270deg)" : "rotate(90deg)",

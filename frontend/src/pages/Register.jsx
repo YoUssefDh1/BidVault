@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 export default function Register() {
   const [name, setName] = useState("");
@@ -9,17 +10,23 @@ export default function Register() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { login } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleSubmitClick = (e) => {
     e.preventDefault();
+    setDialogOpen(true);
+  };
+
+  const handleConfirmRegister = async () => {
     setError("");
     setLoading(true);
     try {
       await api.post("/auth/register", { name, email, password });
       const { data } = await api.post("/auth/login", { email, password });
       login(data.access_token, data.role, { name, email });
+      setDialogOpen(false);
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.detail || "Registration failed.");
@@ -54,7 +61,7 @@ export default function Register() {
         <div className="card" style={{ padding: 28 }}>
           {error && <div className="msg-error" style={{ marginBottom: 20 }}>{error}</div>}
 
-          <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <form onSubmit={handleSubmitClick} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             <div>
               <label>Full Name</label>
               <input className="input" placeholder="John Doe"
@@ -76,6 +83,16 @@ export default function Register() {
             </button>
           </form>
         </div>
+
+        <ConfirmationDialog
+          isOpen={dialogOpen}
+          title="Create Account"
+          message={`Create an account with email ${email}?`}
+          onConfirm={handleConfirmRegister}
+          onCancel={() => setDialogOpen(false)}
+          confirmText="Create Account"
+          isLoading={loading}
+        />
 
         <p style={{ textAlign: "center", marginTop: 20, color: "var(--muted)", fontSize: "0.875rem" }}>
           Already have an account?{" "}

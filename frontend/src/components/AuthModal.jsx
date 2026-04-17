@@ -103,8 +103,8 @@ export default function AuthModal({ mode, onClose }) {
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontWeight: 800, fontSize: "1rem",
                     letterSpacing: "0.06em", textTransform: "uppercase",
-                    color: tab === t ? "var(--lime)" : "var(--muted)",
-                    borderBottom: tab === t ? "2px solid var(--lime)" : "2px solid transparent",
+                    color: tab === t ? "var(--primary)" : "var(--muted)",
+                    borderBottom: tab === t ? "2px solid var(--primary)" : "2px solid transparent",
                     paddingBottom: 2, paddingLeft: 0, paddingRight: 16,
                     transition: "all 0.15s",
                   }}>
@@ -167,7 +167,7 @@ export default function AuthModal({ mode, onClose }) {
                 {tab === "login" ? "Don't have an account? " : "Already have an account? "}
                 <span
                   onClick={() => { setTab(tab === "login" ? "register" : "login"); reset(); }}
-                  style={{ color: "var(--lime)", cursor: "pointer", fontWeight: 600 }}
+                  style={{ color: "var(--primary)", cursor: "pointer", fontWeight: 600 }}
                 >
                   {tab === "login" ? "Register" : "Sign In"}
                 </span>

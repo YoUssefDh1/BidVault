@@ -86,7 +86,7 @@ export default function NotificationBell() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          border: `1px solid ${open ? "var(--lime)" : "var(--border)"}`,
+          border: `1px solid ${open ? "var(--primary)" : "var(--border)"}`,
           borderRadius: 2,
           transition: "border-color 0.15s",
           flexShrink: 0,
@@ -97,7 +97,7 @@ export default function NotificationBell() {
           height="16"
           viewBox="0 0 24 24"
           fill="none"
-          stroke={open ? "var(--lime)" : "var(--text-2)"}
+          stroke={open ? "var(--primary)" : "var(--text-2)"}
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -112,7 +112,7 @@ export default function NotificationBell() {
               position: "absolute",
               top: -6,
               right: -6,
-              background: "var(--lime)",
+              background: "var(--primary)",
               color: "#000",
               width: 16,
               height: 16,
@@ -172,7 +172,7 @@ export default function NotificationBell() {
               >
                 Notifications{" "}
                 {unread > 0 && (
-                  <span style={{ color: "var(--lime)" }}>({unread})</span>
+                  <span style={{ color: "var(--primary)" }}>({unread})</span>
                 )}
               </span>
               {unread > 0 && (
@@ -180,7 +180,7 @@ export default function NotificationBell() {
                   onClick={markAllRead}
                   style={{
                     fontSize: "0.72rem",
-                    color: "var(--lime)",
+                    color: "var(--primary)",
                     cursor: "pointer",
                     fontWeight: 600,
                   }}
@@ -230,7 +230,7 @@ export default function NotificationBell() {
                       borderBottom: "1px solid var(--border)",
                       background:
                         n.status === "unread"
-                          ? "rgba(200,255,0,0.03)"
+                          ? "rgba(136,192,208,0.03)"
                           : "transparent",
                       cursor: "pointer",
                       transition: "background 0.15s",
@@ -244,7 +244,7 @@ export default function NotificationBell() {
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background =
                         n.status === "unread"
-                          ? "rgba(200,255,0,0.03)"
+                          ? "rgba(136,192,208,0.03)"
                           : "transparent")
                     }
                   >
@@ -257,7 +257,7 @@ export default function NotificationBell() {
                         marginTop: 5,
                         background:
                           n.status === "unread"
-                            ? "var(--lime)"
+                            ? "var(--primary)"
                             : "transparent",
                         border:
                           n.status === "unread"

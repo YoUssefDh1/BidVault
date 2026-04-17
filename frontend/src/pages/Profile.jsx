@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
 import BackToHome from "../components/BackToHome";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 // Country list
 const COUNTRIES = [
@@ -71,12 +72,12 @@ function AccountTab({ user, login }) {
         <div style={{
           display: "flex", alignItems: "center", gap: 16,
           padding: "16px 20px",
-          background: "rgba(200,255,0,0.04)",
-          border: "1px solid rgba(200,255,0,0.2)", borderRadius: 4,
+          background: "rgba(136,192,208,0.04)",
+          border: "1px solid rgba(136,192,208,0.2)", borderRadius: 4,
         }}>
           <div style={{
             width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
-            background: "rgba(200,255,0,0.1)",
+            background: "rgba(136,192,208,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: "1.1rem",
           }}>📍</div>
@@ -171,11 +172,11 @@ function AccountTab({ user, login }) {
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 8,
             padding: "6px 12px",
-            background: "rgba(200,255,0,0.07)",
-            border: "1px solid rgba(200,255,0,0.2)",
+            background: "rgba(136,192,208,0.07)",
+            border: "1px solid rgba(136,192,208,0.2)",
             borderRadius: 2, marginBottom: 14, fontSize: "0.85rem",
           }}>
-            <span className="live-dot" style={{ width: 6, height: 6, background: "var(--lime)" }} />
+            <span className="live-dot" style={{ width: 6, height: 6, background: "var(--primary)" }} />
             {fullUser.city}, {fullUser.country}
           </div>
         )}
@@ -283,7 +284,7 @@ function BidsTab({ bids }) {
                 <div style={{ fontWeight: 600, marginBottom: 3 }}>Auction #{b.auction_id}</div>
                 <div style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{new Date(b.bid_date).toLocaleString()}</div>
               </div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.2rem", color: "var(--lime)" }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.2rem", color: "var(--primary)" }}>
                 ${b.amount?.toLocaleString()}
               </div>
             </div>
@@ -362,7 +363,7 @@ function WinsTab({ wins }) {
                 <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 3 }}>🏆 {w.product_title}</div>
                 <div style={{ fontSize: "0.72rem", color: "var(--muted)" }}>{new Date(w.end_date).toLocaleDateString()}</div>
               </div>
-              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.2rem", color: "var(--lime)" }}>
+              <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.2rem", color: "var(--primary)" }}>
                 ${w.final_price?.toLocaleString()}
               </div>
             </div>
@@ -373,12 +374,7 @@ function WinsTab({ wins }) {
   );
 }
 
-function FavouritesTab({ favourites, setFavourites }) {
-  const removeFav = async (auctionId) => {
-    await api.delete(`/favourites/${auctionId}`);
-    setFavourites(prev => prev.filter(f => f.auction_id !== auctionId));
-  };
-
+function FavouritesTab({ favourites, onRemoveClick }) {
   if (!favourites.length) return (
     <EmptyState icon="🤍" message="No saved auctions yet." link="/auctions" linkLabel="Browse auctions →" />
   );
@@ -390,7 +386,7 @@ function FavouritesTab({ favourites, setFavourites }) {
       </h2>
       <div style={{ display: "flex", flexDirection: "column" }}>
         {favourites.map((f) => (
-          <Link key={f.id} to={`/auctions/${f.auction_id}`} style={{ textDecoration: "none" }}>
+          <Link key={f.id} to={`/auctions/${f.id}`} style={{ textDecoration: "none" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 16,
               padding: "14px 0", borderBottom: "1px solid var(--border)",
@@ -405,8 +401,8 @@ function FavouritesTab({ favourites, setFavourites }) {
                 background: "var(--surface-2)", overflow: "hidden",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
-                {f.auction?.product?.images?.[0]
-                  ? <img src={`http://localhost:8000${f.auction.product.images[0].url}`}
+                {f.product_image
+                  ? <img src={`http://localhost:8000${f.product_image}`}
                       style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <span style={{ opacity: 0.2 }}>🏷</span>}
               </div>
@@ -414,21 +410,21 @@ function FavouritesTab({ favourites, setFavourites }) {
               {/* Info */}
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: 4 }}>
-                  {f.auction?.product?.title}
+                  {f.product_title}
                 </div>
-                <span className={`badge badge-${f.auction?.status}`}>{f.auction?.status}</span>
+                <span className={`badge badge-${f.status}`}>{f.status}</span>
               </div>
 
               {/* Price + remove */}
               <div style={{ textAlign: "right", flexShrink: 0 }}>
                 <div style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 900, fontSize: "1.1rem", color: "var(--lime)", marginBottom: 4,
+                  fontWeight: 900, fontSize: "1.1rem", color: "var(--primary)", marginBottom: 4,
                 }}>
-                  ${f.auction?.product?.current_price?.toLocaleString()}
+                  ${f.current_price?.toLocaleString()}
                 </div>
                 <button
-                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeFav(f.auction_id); }}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRemoveClick(f.id); }}
                   style={{
                     background: "transparent", border: "none", cursor: "pointer",
                     fontSize: "0.72rem", color: "var(--muted)", padding: 0,
@@ -459,7 +455,7 @@ function EmptyState({ icon, message, link, linkLabel }) {
 }
 
 export default function Profile() {
-  const { user, role, login } = useAuthStore();
+  const { user, login } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
   const tab = searchParams.get("tab") || "account";
   const setTab = (t) => setSearchParams({ tab: t });
@@ -470,16 +466,42 @@ export default function Profile() {
   const [favourites, setFavourites] = useState([]);
   const [stats, setStats]       = useState(null);
   const [loading, setLoading]   = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [favToRemove, setFavToRemove] = useState(null);
 
   useEffect(() => {
     Promise.all([
       api.get("/bids/mine").then(({ data }) => setBids(data)),
       api.get("/products/seller/mine").then(({ data }) => setProducts(data)),
       api.get("/users/me/wins").then(({ data }) => setWins(data)),
-      api.get("/favourites").then(({ data }) => setFavourites(data)),
+      api.get("/users/me/favourites").then(({ data }) => setFavourites(data)),
       api.get("/users/me/stats").then(({ data }) => setStats(data)),
     ]).finally(() => setLoading(false));
   }, []);
+
+  // Refetch favourites when the tab changes to "favourites" to sync any changes from other pages
+  useEffect(() => {
+    if (tab === "favourites") {
+      api.get("/users/me/favourites")
+        .then(({ data }) => setFavourites(data))
+        .catch(() => {});
+    }
+  }, [tab]);
+
+  const handleRemoveFavClick = (auctionId) => {
+    setFavToRemove(auctionId);
+    setDialogOpen(true);
+  };
+
+  const removeFav = async () => {
+    try {
+      await api.delete(`/users/me/favourites/${favToRemove}`);
+      setFavourites(prev => prev.filter(f => f.id !== favToRemove));
+      setDialogOpen(false);
+    } catch (err) {
+      console.error("Failed to remove favourite", err);
+    }
+  };
 
   const navItems = [
     { key: "account",    label: "Account" },
@@ -499,7 +521,7 @@ export default function Profile() {
         fontSize: "clamp(2.4rem, 5vw, 4rem)",
         fontWeight: 900, marginBottom: 8, lineHeight: 1,
       }}>
-        Hello <span style={{ color: "var(--lime)" }}>{user?.name?.split(" ")[0]}</span>
+        Hello <span style={{ color: "var(--primary)" }}>{user?.name?.split(" ")[0]}</span>
       </h1>
 
       {/* Stats */}
@@ -512,7 +534,7 @@ export default function Profile() {
             { label: "Total Spent",  value: `$${stats.total_spent?.toLocaleString()}` },
           ].map(({ label, value }) => (
             <div key={label} style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--lime)" }}>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.5rem", color: "var(--primary)" }}>
                 {value}
               </span>
               <span style={{ fontSize: "0.78rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Barlow Condensed', sans-serif" }}>
@@ -535,7 +557,7 @@ export default function Profile() {
               <div key={key} onClick={() => setTab(key)} style={{
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 padding: "10px 0 10px 14px",
-                borderLeft: active ? "2px solid var(--lime)" : "2px solid transparent",
+                borderLeft: active ? "2px solid var(--primary)" : "2px solid transparent",
                 cursor: "pointer", transition: "all 0.15s", marginBottom: 4,
               }}>
                 <span style={{
@@ -543,7 +565,7 @@ export default function Profile() {
                   color: active ? "var(--text)" : "var(--muted)", transition: "color 0.15s",
                 }}>{label}</span>
                 {count !== undefined && count > 0 && (
-                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--lime)", flexShrink: 0 }} />
+                  <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--primary)", flexShrink: 0 }} />
                 )}
               </div>
             );
@@ -562,11 +584,21 @@ export default function Profile() {
               {tab === "bids"       && <BidsTab bids={bids} />}
               {tab === "listings"   && <ListingsTab products={products} />}
               {tab === "wins"       && <WinsTab wins={wins} />}
-              {tab === "favourites" && <FavouritesTab favourites={favourites} setFavourites={setFavourites} />}
+              {tab === "favourites" && <FavouritesTab favourites={favourites} setFavourites={setFavourites} onRemoveClick={handleRemoveFavClick} />}
             </>
           )}
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={dialogOpen}
+        title="Remove Favorite"
+        message="Are you sure you want to remove this auction from your favorites?"
+        onConfirm={removeFav}
+        onCancel={() => setDialogOpen(false)}
+        confirmText="Remove"
+        isDangerous={true}
+      />
     </div>
   );
 }

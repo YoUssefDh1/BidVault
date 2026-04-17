@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import api from "../api";
 import BackToHome from "../components/BackToHome";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const Label = ({ children }) => (
   <div style={{
@@ -21,7 +22,7 @@ function StatCard({ label, value, accent }) {
       <div style={{
         fontFamily: "'Barlow Condensed', sans-serif",
         fontWeight: 900, fontSize: "2.2rem",
-        color: accent ? "var(--lime)" : "var(--text)", lineHeight: 1,
+        color: accent ? "var(--primary)" : "var(--text)", lineHeight: 1,
       }}>{value}</div>
     </div>
   );
@@ -80,6 +81,11 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   const [error, setError] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
+  const [selectedAuctionId, setSelectedAuctionId] = useState(null);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -91,14 +97,48 @@ export default function AdminDashboard() {
     }).finally(() => setLoading(false));
   }, []);
 
+  const confirmBlockUser = (id, blocked) => {
+    setSelectedUserId(id);
+    setDialogType(blocked ? "unblock" : "block");
+    setDialogOpen(true);
+  };
+
   const blockUser = async (id, blocked) => {
-    await api.post(`/admin/users/${id}/${blocked ? "unblock" : "block"}`);
-    setUsers(prev => prev.map(u => u.id === id ? { ...u, is_active: blocked } : u));
+    setActionLoading(true);
+    try {
+      await api.post(`/admin/users/${id}/${blocked ? "unblock" : "block"}`);
+      setUsers(prev => prev.map(u => u.id === id ? { ...u, is_active: blocked } : u));
+      setDialogOpen(false);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to update user.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const confirmCloseAuction = (id) => {
+    setSelectedAuctionId(id);
+    setDialogType("closeAuction");
+    setDialogOpen(true);
   };
 
   const closeAuction = async (id) => {
-    await api.post(`/auctions/${id}/close`);
-    setAuctions(prev => prev.map(a => a.id === id ? { ...a, status: "closed" } : a));
+    setActionLoading(true);
+    try {
+      await api.post(`/auctions/${id}/close`);
+      setAuctions(prev => prev.map(a => a.id === id ? { ...a, status: "closed" } : a));
+      setDialogOpen(false);
+    } catch (err) {
+      setError(err.response?.data?.detail || "Failed to close auction.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleConfirmAction = () => {
+    if (dialogType === "block") blockUser(selectedUserId, false);
+    else if (dialogType === "unblock") blockUser(selectedUserId, true);
+    else if (dialogType === "closeAuction") closeAuction(selectedAuctionId);
   };
 
   const tabs = [
@@ -114,7 +154,7 @@ export default function AdminDashboard() {
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <div style={{
-          fontSize: "0.68rem", color: "var(--lime)",
+          fontSize: "0.68rem", color: "var(--primary)",
           fontFamily: "'Barlow Condensed', sans-serif",
           letterSpacing: "0.15em", textTransform: "uppercase",
           fontWeight: 700, marginBottom: 6,
@@ -131,15 +171,15 @@ export default function AdminDashboard() {
             fontFamily: "'Barlow Condensed', sans-serif",
             fontWeight: 700, fontSize: "0.88rem",
             letterSpacing: "0.08em", textTransform: "uppercase",
-            color: tab === key ? "var(--lime)" : "var(--muted)",
-            borderBottom: tab === key ? "2px solid var(--lime)" : "2px solid transparent",
+            color: tab === key ? "var(--primary)" : "var(--muted)",
+            borderBottom: tab === key ? "2px solid var(--primary)" : "2px solid transparent",
             transition: "all 0.15s", display: "flex", alignItems: "center", gap: 8,
           }}>
             {label}
             {count !== undefined && (
               <span style={{
-                background: tab === key ? "rgba(200,255,0,0.15)" : "var(--surface-2)",
-                color: tab === key ? "var(--lime)" : "var(--muted)",
+                background: tab === key ? "rgba(136,192,208,0.15)" : "var(--surface-2)",
+                color: tab === key ? "var(--primary)" : "var(--muted)",
                 fontSize: "0.7rem", fontWeight: 800,
                 padding: "1px 7px", borderRadius: 10,
               }}>{count}</span>
@@ -188,7 +228,7 @@ export default function AdminDashboard() {
                 actions={(i) => (
                   <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
                     <button
-                      onClick={() => blockUser(users[i].id, !users[i].is_active)}
+                      onClick={() => confirmBlockUser(users[i].id, !users[i].is_active)}
                       className={users[i].is_active ? "btn-danger" : "btn-ghost"}
                       style={{ padding: "5px 14px", fontSize: "0.75rem" }}>
                       {users[i].is_active ? "Block" : "Unblock"}
@@ -208,7 +248,7 @@ export default function AdminDashboard() {
                   <span style={{ fontWeight: 600, color: "var(--text)" }}>{a.product_title}</span>,
                   a.seller_name,
                   <span className={`badge badge-${a.status}`}>{a.status}</span>,
-                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, color: "var(--lime)" }}>
+                  <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, color: "var(--primary)" }}>
                     ${a.current_price?.toLocaleString()}
                   </span>,
                   a.bid_count,
@@ -216,7 +256,7 @@ export default function AdminDashboard() {
                 ])}
                 actions={(i) => (
                   auctions[i].status === "active" && (
-                    <button onClick={() => closeAuction(auctions[i].id)}
+                    <button onClick={() => confirmCloseAuction(auctions[i].id)}
                       className="btn-danger"
                       style={{ padding: "5px 14px", fontSize: "0.75rem" }}>
                       Close
@@ -228,6 +268,21 @@ export default function AdminDashboard() {
           )}
         </>
       )}
+
+      <ConfirmationDialog
+        isOpen={dialogOpen}
+        title={dialogType === "block" ? "Block User" : dialogType === "unblock" ? "Unblock User" : "Close Auction"}
+        message={
+          dialogType === "block" ? "Are you sure you want to block this user? They won't be able to use the platform."
+          : dialogType === "unblock" ? "Are you sure you want to unblock this user? They will be able to use the platform again."
+          : "Are you sure you want to close this auction? This action cannot be undone."
+        }
+        onConfirm={handleConfirmAction}
+        onCancel={() => setDialogOpen(false)}
+        confirmText={dialogType === "block" ? "Block" : dialogType === "unblock" ? "Unblock" : "Close Auction"}
+        isDangerous={true}
+        isLoading={actionLoading}
+      />
     </div>
   );
 }

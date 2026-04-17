@@ -39,7 +39,7 @@ export default function AuthNudge({ onLogin, onRegister }) {
     }}>
 
       {/* Lime top accent bar */}
-      <div style={{ height: 3, background: "var(--lime)", width: "100%" }} />
+      <div style={{ height: 3, background: "var(--primary)", width: "100%" }} />
 
       <div style={{ padding: "16px 18px 18px" }}>
 

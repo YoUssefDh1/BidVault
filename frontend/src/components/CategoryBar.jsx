@@ -80,7 +80,7 @@ export default function CategoryBar() {
               background: "linear-gradient(to right, rgba(0,0,0,1) 60%, transparent)",
               cursor: "pointer",
             }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--lime)", lineHeight: 1, userSelect: "none" }}>‹</span>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>‹</span>
             </div>
           )}
 
@@ -88,13 +88,13 @@ export default function CategoryBar() {
           <div onClick={() => handleCat(null)} style={{
             display: "flex", flexDirection: "column", alignItems: "center",
             gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
-            borderBottom: !activeCatId ? "2px solid var(--lime)" : "2px solid transparent",
+            borderBottom: !activeCatId ? "2px solid var(--primary)" : "2px solid transparent",
             transition: "all 0.2s ease", transform: "translateY(0)",
           }}
             onMouseEnter={e => {
               if (activeCatId) {
                 e.currentTarget.style.transform = "translateY(-3px)";
-                e.currentTarget.style.borderBottomColor = "rgba(200,255,0,0.3)";
+                e.currentTarget.style.borderBottomColor = "rgba(136,192,208,0.3)";
               }
             }}
             onMouseLeave={e => {
@@ -105,7 +105,7 @@ export default function CategoryBar() {
             }}
           >
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-              stroke={!activeCatId ? "var(--lime)" : "var(--muted)"}
+              stroke={!activeCatId ? "var(--primary)" : "var(--muted)"}
               strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
               <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
@@ -113,7 +113,7 @@ export default function CategoryBar() {
             <span style={{
               fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
               fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase",
-              color: !activeCatId ? "var(--lime)" : "var(--muted)", transition: "color 0.15s",
+              color: !activeCatId ? "var(--primary)" : "var(--muted)", transition: "color 0.15s",
             }}>All</span>
           </div>
 
@@ -126,14 +126,14 @@ export default function CategoryBar() {
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center",
                   gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
-                  borderBottom: isActive ? "2px solid var(--lime)" : "2px solid transparent",
+                  borderBottom: isActive ? "2px solid var(--primary)" : "2px solid transparent",
                   transition: "all 0.2s ease",
                   transform: "translateY(0)",
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
                     e.currentTarget.style.transform = "translateY(-3px)";
-                    e.currentTarget.style.borderBottomColor = "rgba(200,255,0,0.3)";
+                    e.currentTarget.style.borderBottomColor = "rgba(136,192,208,0.3)";
                     const label = e.currentTarget.querySelector("span");
                     if (label) label.style.color = "var(--text-2)";
                     const svg = e.currentTarget.querySelector("svg");
@@ -153,7 +153,7 @@ export default function CategoryBar() {
               >
                 {IconFn ? IconFn({ active: isActive }) : (
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                    stroke={isActive ? "var(--lime)" : "var(--muted)"}
+                    stroke={isActive ? "var(--primary)" : "var(--muted)"}
                     strokeWidth="1.8" strokeLinecap="round">
                     <circle cx="12" cy="12" r="10"/>
                   </svg>
@@ -161,7 +161,7 @@ export default function CategoryBar() {
                 <span style={{
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
                   fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: isActive ? "var(--lime)" : "var(--muted)",
+                  color: isActive ? "var(--primary)" : "var(--muted)",
                   whiteSpace: "nowrap", transition: "color 0.2s",
                 }}>{cat.name}</span>
               </div>
@@ -177,7 +177,7 @@ export default function CategoryBar() {
               background: "linear-gradient(to left, rgba(0,0,0,1) 60%, transparent)",
               cursor: "pointer",
             }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--lime)", lineHeight: 1, userSelect: "none" }}>›</span>
+              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>›</span>
             </div>
           )}
         </div>

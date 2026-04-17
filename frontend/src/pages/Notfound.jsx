@@ -12,7 +12,7 @@ export default function NotFound() {
       {/* Background glow */}
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none",
-        background: "radial-gradient(ellipse at 50% 40%, rgba(200,255,0,0.04) 0%, transparent 65%)",
+        background: "radial-gradient(ellipse at 50% 40%, rgba(136,192,208,0.04) 0%, transparent 65%)",
       }} />
 
       {/* Big 404 */}
@@ -22,7 +22,7 @@ export default function NotFound() {
         fontSize: "clamp(8rem, 20vw, 18rem)",
         lineHeight: 0.9,
         color: "transparent",
-        WebkitTextStroke: "2px rgba(200,255,0,0.15)",
+        WebkitTextStroke: "2px rgba(136,192,208,0.15)",
         userSelect: "none",
         marginBottom: 16,
         letterSpacing: "-0.04em",

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api";
 import BackToHome from "../components/BackToHome";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 // ── Step config ───────────────────────────────────────────────
 const STEPS = [
@@ -29,12 +30,12 @@ function StepIndicator({ current }) {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 900, fontSize: "0.85rem",
                 transition: "all 0.3s",
-                background: done ? "var(--lime)" : active ? "var(--lime)" : "transparent",
-                border: done || active ? "none" : "2px solid var(--border-2)",
-                color: done || active ? "#000" : "var(--muted)",
+                background: done ? "var(--primary)" : active ? "var(--primary)" : "transparent",
+                border: done || active ? "none" : "2px solid var(--border-strong)",
+                color: done || active ? "var(--bg)" : "var(--muted)",
               }}>
                 {done ? (
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--bg)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
                   </svg>
                 ) : step.number}
@@ -44,14 +45,14 @@ function StepIndicator({ current }) {
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontWeight: 700, letterSpacing: "0.1em",
                 textTransform: "uppercase",
-                color: active ? "var(--lime)" : done ? "var(--text-2)" : "var(--muted)",
+                color: active ? "var(--primary)" : done ? "var(--text-2)" : "var(--muted)",
                 transition: "color 0.3s",
               }}>{step.label}</div>
             </div>
             {i < STEPS.length - 1 && (
               <div style={{
                 width: 60, height: 2, marginBottom: 22, marginLeft: 4, marginRight: 4,
-                background: done ? "var(--lime)" : "var(--border)",
+                background: done ? "var(--primary)" : "var(--border)",
                 transition: "background 0.3s",
               }} />
             )}
@@ -63,7 +64,7 @@ function StepIndicator({ current }) {
 }
 
 // ── Image upload zone ─────────────────────────────────────────
-function ImageUploadZone({ images, setImages }) {
+function ImageUploadZone({ images, setImages, onRemoveClick }) {
   const inputRef = useRef(null);
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
@@ -76,8 +77,6 @@ function ImageUploadZone({ images, setImages }) {
     }));
     setImages((prev) => [...prev, ...newImgs].slice(0, 6));
   };
-
-  const remove = (id) => setImages((prev) => prev.filter((img) => img.id !== id));
 
   const handleDrop = (e, targetId) => {
     e.preventDefault();
@@ -101,12 +100,12 @@ function ImageUploadZone({ images, setImages }) {
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => { e.preventDefault(); addFiles(e.dataTransfer.files); }}
         style={{
-          border: "2px dashed var(--border-2)", borderRadius: 4,
+          border: "2px dashed var(--border-strong)", borderRadius: 4,
           padding: "40px 20px", textAlign: "center",
           cursor: "pointer", marginBottom: 20, transition: "border-color 0.15s",
         }}
-        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--lime)"}
-        onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-2)"}
+        onMouseEnter={e => e.currentTarget.style.borderColor = "var(--primary)"}
+        onMouseLeave={e => e.currentTarget.style.borderColor = "var(--border-strong)"}
       >
         <div style={{ fontSize: "2rem", marginBottom: 10, opacity: 0.5 }}>📷</div>
         <div style={{
@@ -130,7 +129,7 @@ function ImageUploadZone({ images, setImages }) {
               onDrop={(e) => handleDrop(e, img.id)}
               style={{
                 position: "relative", aspectRatio: "4/3",
-                border: dragOver === img.id ? "2px solid var(--lime)" : "1px solid var(--border)",
+                border: dragOver === img.id ? "2px solid var(--primary)" : "1px solid var(--border)",
                 borderRadius: 2, overflow: "hidden", cursor: "grab",
                 opacity: dragging === img.id ? 0.5 : 1, transition: "border-color 0.15s",
               }}>
@@ -138,14 +137,14 @@ function ImageUploadZone({ images, setImages }) {
               {i === 0 && (
                 <div style={{
                   position: "absolute", top: 6, left: 6,
-                  background: "var(--lime)", color: "#000",
+                  background: "var(--primary)", color: "var(--bg)",
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontWeight: 800, fontSize: "0.58rem",
                   letterSpacing: "0.1em", textTransform: "uppercase",
                   padding: "2px 6px", borderRadius: 2,
                 }}>Cover</div>
               )}
-              <button onClick={(e) => { e.stopPropagation(); remove(img.id); }} type="button" style={{
+              <button onClick={(e) => { e.stopPropagation(); onRemoveClick(img.id); }} type="button" style={{
                 position: "absolute", top: 6, right: 6,
                 width: 24, height: 24, borderRadius: "50%",
                 background: "rgba(0,0,0,0.85)", border: "none",
@@ -172,7 +171,7 @@ function RichTextEditor({ value, onChange }) {
     if (editorRef.current && value === "") {
       editorRef.current.innerHTML = "";
     }
-  }, []);
+  }, [value]);
 
   return (
     <div style={{ border: "1px solid var(--border)", borderRadius: 2, overflow: "hidden" }}>
@@ -196,7 +195,7 @@ function RichTextEditor({ value, onChange }) {
               fontSize: "0.78rem", fontWeight: 700, transition: "all 0.15s",
               ...(style || {}),
             }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--lime)"; e.currentTarget.style.color = "var(--lime)"; }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.color = "var(--primary)"; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "var(--text-2)"; }}
           >{label}</button>
         ))}
@@ -226,7 +225,7 @@ const FieldLabel = ({ children, required }) => (
     fontWeight: 700, marginBottom: 6,
   }}>
     {children}
-    {required && <span style={{ color: "var(--lime)", marginLeft: 4 }}>*</span>}
+    {required && <span style={{ color: "var(--primary)", marginLeft: 4 }}>*</span>}
   </div>
 );
 
@@ -258,6 +257,9 @@ export default function CreateProduct() {
   const [endDate, setEndDate]           = useState("");
   const [loading, setLoading]           = useState(false);
   const [error, setError]               = useState("");
+  const [dialogOpen, setDialogOpen]     = useState(false);
+  const [dialogType, setDialogType]     = useState(null);
+  const [imageToRemove, setImageToRemove] = useState(null);
 
   useEffect(() => {
     api.get("/categories").then(({ data }) => setCategories(data));
@@ -285,6 +287,22 @@ export default function CreateProduct() {
   const next = () => { if (canNext()) { setError(""); setStep(s => s + 1); } else setError("Please fill in the required fields."); };
   const back = () => { setError(""); setStep(s => s - 1); };
 
+  const confirmRemoveImage = (id) => {
+    setImageToRemove(id);
+    setDialogType("removeImage");
+    setDialogOpen(true);
+  };
+
+  const removeImage = () => {
+    setImages((prev) => prev.filter((img) => img.id !== imageToRemove));
+    setDialogOpen(false);
+  };
+
+  const confirmPublish = () => {
+    setDialogType("publish");
+    setDialogOpen(true);
+  };
+
   const handlePublish = async () => {
     setError(""); setLoading(true);
     try {
@@ -308,6 +326,7 @@ export default function CreateProduct() {
         start_date: new Date(startDate).toISOString(),
         end_date:   new Date(endDate).toISOString(),
       });
+      setDialogOpen(false);
       navigate("/profile?tab=listings");
     } catch (err) {
       setError(err.response?.data?.detail || "Failed to publish listing.");
@@ -325,7 +344,7 @@ export default function CreateProduct() {
       {/* Page title */}
       <div style={{ textAlign: "center", marginBottom: 40 }}>
         <div style={{
-          fontSize: "0.68rem", color: "var(--lime)",
+          fontSize: "0.68rem", color: "var(--primary)",
           fontFamily: "'Barlow Condensed', sans-serif",
           letterSpacing: "0.15em", textTransform: "uppercase",
           fontWeight: 700, marginBottom: 8,
@@ -346,7 +365,7 @@ export default function CreateProduct() {
         {/* ── STEP 1 — Photos ── */}
         {step === 1 && (
           <StepCard title="Add Photos" subtitle="Great photos help buyers make confident decisions. Add up to 6 images — drag to reorder, first image becomes the cover.">
-            <ImageUploadZone images={images} setImages={setImages} />
+            <ImageUploadZone images={images} setImages={setImages} onRemoveClick={confirmRemoveImage} />
           </StepCard>
         )}
 
@@ -397,16 +416,16 @@ export default function CreateProduct() {
                   return (
                     <div key={c.id} onClick={() => setCategoryId(selected ? "" : c.id.toString())} style={{
                       padding: "14px 10px", textAlign: "center",
-                      border: selected ? "1px solid var(--lime)" : "1px solid var(--border)",
+                      border: selected ? "1px solid var(--primary)" : "1px solid var(--border)",
                       borderRadius: 2, cursor: "pointer",
-                      background: selected ? "rgba(200,255,0,0.06)" : "var(--surface-2)",
+                      background: selected ? "rgba(136,192,208,0.06)" : "var(--surface-2)",
                       transition: "all 0.15s", display: "flex", flexDirection: "column",
                       alignItems: "center", gap: 8,
                     }}>
                       <div style={{ opacity: selected ? 1 : 0.4, transition: "opacity 0.15s" }}>
                         {icon || (
                           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                            stroke="var(--lime)" strokeWidth="1.8" strokeLinecap="round">
+                            stroke="var(--primary)" strokeWidth="1.8" strokeLinecap="round">
                             <circle cx="12" cy="12" r="10"/>
                           </svg>
                         )}
@@ -414,7 +433,7 @@ export default function CreateProduct() {
                       <div style={{
                         fontSize: "0.68rem", fontFamily: "'Barlow Condensed', sans-serif",
                         fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em",
-                        color: selected ? "var(--lime)" : "var(--muted)",
+                        color: selected ? "var(--primary)" : "var(--muted)",
                       }}>{c.name}</div>
                     </div>
                   );
@@ -447,9 +466,9 @@ export default function CreateProduct() {
               </div>
               {days > 0 && (
                 <div style={{
-                  padding: "12px 16px", background: "rgba(200,255,0,0.05)",
-                  border: "1px solid rgba(200,255,0,0.15)", borderRadius: 2,
-                  fontSize: "0.82rem", color: "var(--lime)",
+                  padding: "12px 16px", background: "rgba(136,192,208,0.05)",
+                  border: "1px solid rgba(136,192,208,0.15)", borderRadius: 2,
+                  fontSize: "0.82rem", color: "var(--primary)",
                   fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.06em",
                 }}>
                   ✓ Auction runs for {days} day{days !== 1 ? "s" : ""}
@@ -489,7 +508,7 @@ export default function CreateProduct() {
                 <div style={{ display: "flex", gap: 24 }}>
                   <div>
                     <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Starting Bid</div>
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "var(--lime)" }}>${parseFloat(price || 0).toLocaleString()}</div>
+                  <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.3rem", color: "var(--primary)" }}>\${parseFloat(price || 0).toLocaleString()}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Duration</div>
@@ -544,13 +563,28 @@ export default function CreateProduct() {
               Continue →
             </button>
           ) : (
-            <button type="button" onClick={handlePublish} disabled={loading}
+            <button type="button" onClick={confirmPublish} disabled={loading}
               className="btn-primary" style={{ padding: "10px 28px", fontSize: "0.85rem" }}>
               {loading ? "Publishing..." : "Publish Listing →"}
             </button>
           )}
         </div>
       </div>
+
+      <ConfirmationDialog
+        isOpen={dialogOpen}
+        title={dialogType === "removeImage" ? "Remove Image" : "Publish Listing"}
+        message={
+          dialogType === "removeImage"
+            ? "Are you sure you want to remove this image? You can add another one if needed."
+            : "Are you ready to publish this listing? Once published, it will be live immediately and visible to all buyers."
+        }
+        onConfirm={dialogType === "removeImage" ? removeImage : handlePublish}
+        onCancel={() => setDialogOpen(false)}
+        confirmText={dialogType === "removeImage" ? "Remove" : "Publish Listing"}
+        isDangerous={dialogType === "removeImage"}
+        isLoading={loading}
+      />
     </div>
   );
 }
