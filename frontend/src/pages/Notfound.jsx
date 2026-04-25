@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
+import Footer from "../components/Footer";
 
 export default function NotFound() {
   return (
+    <>
     <div style={{
       minHeight: "80vh", display: "flex", flexDirection: "column",
       alignItems: "center", justifyContent: "center",
@@ -59,5 +61,7 @@ export default function NotFound() {
       </div>
 
     </div>
+    <Footer />
+    </>
   );
 }

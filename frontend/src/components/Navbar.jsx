@@ -54,6 +54,13 @@ export default function Navbar() {
     setSearch("");
   }, [location.pathname]);
 
+  // ── Open auth modal from anywhere via custom event ────────────
+  useEffect(() => {
+    const handler = (e) => setAuthModal(e.detail);
+    document.addEventListener("open-auth", handler);
+    return () => document.removeEventListener("open-auth", handler);
+  }, []);
+
   const doSearch = (term) => {
     if (!term.trim()) return;
     setShowDrop(false);
@@ -85,6 +92,7 @@ export default function Navbar() {
         maxWidth: 1400, margin: "0 auto", padding: "0 32px",
         height: 60, display: "flex", alignItems: "center",
         justifyContent: "space-between", width: "100%",
+        position: "relative",
       }}>
 
         {/* Logo */}
@@ -103,7 +111,6 @@ export default function Navbar() {
         <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
           {[
             { to: "/auctions", label: "Live Auctions", show: true },
-            { to: "/products/create", label: "Sell", show: token && role === "user" },
             { to: "/admin", label: "Dashboard", show: role === "admin" },
           ].filter(l => l.show).map(({ to, label }) => (
             <Link key={to} to={to} style={{ textDecoration: "none" }}>
@@ -120,10 +127,13 @@ export default function Navbar() {
           ))}
         </div>
 
-        {/* Search bar */}
+        {/* Search bar — absolutely centered in the navbar */}
         <form onSubmit={handleSubmit}
           ref={wrapperRef}
-          style={{ flex: 1, maxWidth: 420, margin: "0 32px", position: "relative" }}>
+          style={{
+            position: "absolute", left: "50%", transform: "translateX(-50%)",
+            width: 480, zIndex: 10,
+          }}>
 
           <div style={{
             display: "flex", alignItems: "center",
@@ -189,7 +199,7 @@ export default function Navbar() {
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     {a.product?.images?.[0] ? (
-                      <img src={`http://localhost:8000${a.product.images[0].url}`}
+                      <img src={`${api.defaults.baseURL}${a.product.images[0].url}`}
                         style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       <span style={{ fontSize: "0.9rem", opacity: 0.4 }}>🏷</span>
@@ -252,6 +262,32 @@ export default function Navbar() {
         {/* Right Auth */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
           <NotificationBell />
+
+          {/* Help / FAQ */}
+          <Link to="/faq" style={{ textDecoration: "none" }}>
+            <div className="social-btn" title="Help & FAQ"
+              style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "0.9rem" }}>
+              ?
+            </div>
+          </Link>
+
+          {/* Sell CTA — visible to all non-admin users */}
+          {role !== "admin" && (
+            token && role === "user" ? (
+              <Link to="/products/create" style={{ textDecoration: "none" }}>
+                <button className="btn-outline-lime" style={{ padding: "7px 16px", fontSize: "0.8rem" }}>
+                  + List Item
+                </button>
+              </Link>
+            ) : !token ? (
+              <button className="btn-outline-lime"
+                onClick={() => setAuthModal("register")}
+                style={{ padding: "7px 16px", fontSize: "0.8rem" }}>
+                Start Selling
+              </button>
+            ) : null
+          )}
+
           {token ? (
             <ProfileDropdown user={user} role={role} onLogout={() => { logout(); navigate("/"); }} navigate={navigate} />
           ) : (

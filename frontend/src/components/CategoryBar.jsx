@@ -7,6 +7,7 @@ export default function CategoryBar() {
   const [categories, setCategories] = useState([]);
   const [canLeft,  setCanLeft]      = useState(false);
   const [canRight, setCanRight]     = useState(true);
+  const [centerItems, setCenterItems] = useState(false);
   const navigate  = useNavigate();
   const location  = useLocation();
   const scrollRef = useRef(null);
@@ -22,8 +23,16 @@ export default function CategoryBar() {
   const updateArrows = () => {
     const el = scrollRef.current;
     if (!el) return;
-    setCanLeft(el.scrollLeft > 4);
-    setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    const overflow = el.scrollWidth > el.clientWidth + 4;
+    // Center items when they all fit; show arrows only when overflow exists
+    setCenterItems(!overflow);
+    if (!overflow) {
+      setCanLeft(false);
+      setCanRight(false);
+    } else {
+      setCanLeft(el.scrollLeft > 4);
+      setCanRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+    }
   };
 
   useEffect(() => {
@@ -63,31 +72,43 @@ export default function CategoryBar() {
       background: "rgba(0,0,0,0.97)",
       position: "sticky", top: 60, zIndex: 90,
     }}>
-      <div style={{ position: "relative" }}>
-        <div ref={scrollRef} style={{
-          maxWidth: 1400, margin: "0 auto", padding: "0 32px",
-          display: "flex", alignItems: "center",
-          overflowX: "auto", scrollbarWidth: "none",
-          msOverflowStyle: "none", scrollBehavior: "smooth",
-        }}>
+      {/* Centered container matches scroll content width — arrows anchor to this */}
+      <div style={{ maxWidth: 1400, margin: "0 auto", position: "relative", overflow: "hidden" }}>
 
-          {/* Left arrow */}
-          {canLeft && (
-            <div onClick={() => scroll(-1)} style={{
-              position: "sticky", left: 0, flexShrink: 0, zIndex: 3,
-              height: "100%", display: "flex", alignItems: "center",
-              paddingRight: 8,
-              background: "linear-gradient(to right, rgba(0,0,0,1) 60%, transparent)",
-              cursor: "pointer",
-            }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>‹</span>
-            </div>
-          )}
+        {canLeft && (
+          <div onClick={() => scroll(-1)} style={{
+            position: "absolute", left: 0, top: 0, bottom: 0, zIndex: 3,
+            display: "flex", alignItems: "center", paddingRight: 12, paddingLeft: 8,
+            background: "linear-gradient(to right, rgba(0,0,0,0.97) 55%, transparent 100%)",
+            cursor: "pointer",
+          }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>‹</span>
+          </div>
+        )}
+
+        {canRight && (
+          <div onClick={() => scroll(1)} style={{
+            position: "absolute", right: 0, top: 0, bottom: 0, zIndex: 3,
+            display: "flex", alignItems: "center", paddingLeft: 12, paddingRight: 8,
+            background: "linear-gradient(to left, rgba(0,0,0,0.97) 55%, transparent 100%)",
+            cursor: "pointer",
+          }}>
+            <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>›</span>
+          </div>
+        )}
+
+              <div ref={scrollRef} style={{
+                padding: "0 32px",
+                display: "flex", alignItems: "center",
+                justifyContent: centerItems ? "center" : "flex-start",
+                overflowX: "auto", scrollbarWidth: "none",
+                msOverflowStyle: "none", scrollBehavior: "smooth",
+              }}>
 
           {/* All */}
           <div onClick={() => handleCat(null)} style={{
             display: "flex", flexDirection: "column", alignItems: "center",
-            gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
+            gap: 4, padding: "10px 14px", cursor: "pointer", flexShrink: 0,
             borderBottom: !activeCatId ? "2px solid var(--primary)" : "2px solid transparent",
             transition: "all 0.2s ease", transform: "translateY(0)",
           }}
@@ -104,16 +125,16 @@ export default function CategoryBar() {
               }
             }}
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-              stroke={!activeCatId ? "var(--primary)" : "var(--muted)"}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+              stroke={!activeCatId ? "var(--primary)" : "var(--text-2)"}
               strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
               <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
             </svg>
             <span style={{
-              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-              fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase",
-              color: !activeCatId ? "var(--primary)" : "var(--muted)", transition: "color 0.15s",
+              fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
+              fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase",
+              color: !activeCatId ? "var(--primary)" : "var(--text-2)", transition: "color 0.15s",
             }}>All</span>
           </div>
 
@@ -125,7 +146,7 @@ export default function CategoryBar() {
               <div key={cat.id} onClick={() => handleCat(cat)}
                 style={{
                   display: "flex", flexDirection: "column", alignItems: "center",
-                  gap: 6, padding: "14px 20px", cursor: "pointer", flexShrink: 0,
+                  gap: 4, padding: "10px 14px", cursor: "pointer", flexShrink: 0,
                   borderBottom: isActive ? "2px solid var(--primary)" : "2px solid transparent",
                   transition: "all 0.2s ease",
                   transform: "translateY(0)",
@@ -145,41 +166,29 @@ export default function CategoryBar() {
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.borderBottomColor = "transparent";
                     const label = e.currentTarget.querySelector("span");
-                    if (label) label.style.color = "var(--muted)";
+                    if (label) label.style.color = "var(--text-2)";
                     const svg = e.currentTarget.querySelector("svg");
-                    if (svg) svg.setAttribute("stroke", "var(--muted)");
+                    if (svg) svg.setAttribute("stroke", "var(--text-2)");
                   }
                 }}
               >
                 {IconFn ? IconFn({ active: isActive }) : (
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-                    stroke={isActive ? "var(--primary)" : "var(--muted)"}
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                    stroke={isActive ? "var(--primary)" : "var(--text-2)"}
                     strokeWidth="1.8" strokeLinecap="round">
                     <circle cx="12" cy="12" r="10"/>
                   </svg>
                 )}
                 <span style={{
-                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700,
-                  fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase",
-                  color: isActive ? "var(--primary)" : "var(--muted)",
+                  fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
+                  fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase",
+                  color: isActive ? "var(--primary)" : "var(--text-2)",
                   whiteSpace: "nowrap", transition: "color 0.2s",
                 }}>{cat.name}</span>
               </div>
             );
           })}
 
-          {/* Right arrow */}
-          {canRight && (
-            <div onClick={() => scroll(1)} style={{
-              position: "sticky", right: 0, flexShrink: 0, zIndex: 3,
-              height: "100%", display: "flex", alignItems: "center",
-              paddingLeft: 8,
-              background: "linear-gradient(to left, rgba(0,0,0,1) 60%, transparent)",
-              cursor: "pointer",
-            }}>
-              <span style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1, userSelect: "none" }}>›</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

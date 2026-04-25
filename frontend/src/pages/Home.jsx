@@ -4,6 +4,7 @@ import api from "../api";
 import useAuthStore from "../store/authStore";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
 import CategoryBar from "../components/CategoryBar";
+import Footer from "../components/Footer";
 
 // CategoryBar is imported from ../components/CategoryBar
 
@@ -42,12 +43,20 @@ function SmallCard({ auction }) {
           overflow: "hidden", position: "relative", flexShrink: 0,
         }}>
           {product.images?.[0] ? (
-            <img src={`http://localhost:8000${product.images[0].url}`}
+            <img
+              src={`${api.defaults.baseURL}${product.images[0].url}`}
               alt={product.title}
-              style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+            />
           ) : (
             <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "3rem", opacity: 0.2 }}>🏷</div>
           )}
+          {/* Bottom gradient so badges stay readable over any image */}
+          <div style={{
+            position: "absolute", bottom: 0, left: 0, right: 0, height: 56,
+            background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
+            pointerEvents: "none",
+          }} />
           {auction.status === "active" && (
             <div style={{
               position: "absolute", top: 8, left: 8,
@@ -66,20 +75,20 @@ function SmallCard({ auction }) {
         <div style={{ padding: "14px 16px", flex: 1, display: "flex", flexDirection: "column" }}>
           <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: 4, lineHeight: 1.2 }}>{product.title}</h3>
           <p style={{
-            fontSize: "0.76rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.5, flex: 1,
+            fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.6, flex: 1,
             display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
           }} dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 12 }}>
             <div>
-              <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Current Bid</div>
+              <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)" }}>Current Bid</div>
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.2rem" }}>
                 ${product.current_price?.toLocaleString()}
               </div>
             </div>
             {auction.status === "active" && (
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Ends In</div>
+                <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)" }}>Ends In</div>
                 <Countdown endDate={auction.end_date} style={{
                   fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800,
                   fontSize: "0.95rem", color: "var(--primary)",
@@ -113,13 +122,15 @@ function FeaturedCard({ auction }) {
       }}>
         {/* Background image with overlay */}
         {product.images?.[0] && (
-          <img src={`http://localhost:8000${product.images[0].url}`}
+          <img
+            src={`${api.defaults.baseURL}${product.images[0].url}`}
             alt={product.title}
             style={{
               position: "absolute", inset: 0,
               width: "100%", height: "100%", objectFit: "cover",
               filter: "brightness(0.35)",
-            }} />
+            }}
+          />
         )}
 
         {/* Viewers badge top right */}
@@ -197,36 +208,61 @@ function FeaturedCard({ auction }) {
 }
 
 // ── Ticker ────────────────────────────────────────────────────
+function TickerItems({ items, suffix }) {
+  return (
+    <>
+      {items.map((a, i) => (
+        <span key={`${suffix}-${i}`} style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          paddingRight: 40, whiteSpace: "nowrap",
+          fontFamily: "'Barlow Condensed', sans-serif",
+          fontWeight: 700, fontSize: "0.78rem", letterSpacing: "0.06em",
+        }}>
+          <span style={{ color: "var(--border-strong)", fontSize: "0.55rem" }}>◆</span>
+          <span style={{ color: "var(--text-2)" }}>{a.product?.title}</span>
+          <span style={{ color: "var(--primary)", fontWeight: 900 }}>
+            ${a.product?.current_price?.toLocaleString()}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 function Ticker({ auctions }) {
   const items = auctions.slice(0, 8);
   if (!items.length) return null;
-  const content = items.map((a) => (
-    `BID PLACED: ${a.product?.title?.toUpperCase()} — $${a.product?.current_price?.toLocaleString()}`
-  )).join("   ·   ");
-  const doubled = content + "   ·   " + content;
 
   return (
     <div style={{
-      background: "var(--primary)", color: "var(--bg)", overflow: "hidden",
-      padding: "8px 0", borderTop: "1px solid var(--bg)", borderBottom: "1px solid var(--bg)",
+      display: "flex", alignItems: "center",
+      background: "var(--surface)",
+      borderTop: "1px solid var(--border)",
+      borderBottom: "1px solid var(--border)",
+      height: 36, overflow: "hidden",
     }}>
-      <div className="ticker-track">
+      {/* Pinned label */}
+      <div style={{
+        flexShrink: 0, display: "flex", alignItems: "center", gap: 6,
+        padding: "0 16px", height: "100%",
+        borderRight: "1px solid var(--border)",
+        background: "var(--surface-2)",
+      }}>
+        <span className="live-dot" style={{ width: 5, height: 5 }} />
         <span style={{
           fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 800, fontSize: "0.78rem",
-          letterSpacing: "0.08em", whiteSpace: "nowrap",
-          paddingRight: 40,
-        }}>
-          {doubled}
-        </span>
-        <span style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontWeight: 800, fontSize: "0.78rem",
-          letterSpacing: "0.08em", whiteSpace: "nowrap",
-          paddingRight: 40,
-        }}>
-          {doubled}
-        </span>
+          fontWeight: 800, fontSize: "0.68rem",
+          letterSpacing: "0.12em", textTransform: "uppercase",
+          color: "var(--primary)", whiteSpace: "nowrap",
+        }}>Live Bids</span>
+      </div>
+
+      {/* Scrolling track */}
+      <div style={{ flex: 1, overflow: "hidden" }}>
+        <div className="ticker-track">
+          <TickerItems items={items} suffix="a" />
+          <TickerItems items={items} suffix="b" />
+        </div>
       </div>
     </div>
   );
@@ -235,7 +271,7 @@ function Ticker({ auctions }) {
 // ── Main Component ────────────────────────────────────────────
 export default function Home() {
   const [auctions, setAuctions] = useState([]);
-  const [featured, setFeatured] = useState(null);
+  const [, setFeatured] = useState(null);
   const [loading, setLoading] = useState(true);
   const { role, token } = useAuthStore();
 
@@ -247,6 +283,15 @@ export default function Home() {
     }).finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    // Ensure the page is at the top when Home mounts/refreshed
+    if (typeof window !== "undefined") {
+      // eslint-disable-next-line no-unused-vars
+      try { window.history.scrollRestoration = "manual"; } catch (e) { /* empty */ }
+      window.scrollTo(0, 0);
+    }
+  }, []);
+
   return (
     <div>
       {/* ── CATEGORY BAR ─────────────────────────────────────── */}
@@ -254,7 +299,7 @@ export default function Home() {
 
       {/* ── HERO ─────────────────────────────────────────────── */}
       <div style={{
-        position: "relative", minHeight: "88vh",
+        position: "relative", minHeight: "calc(100vh - 169px)",
         display: "flex", alignItems: "center",
         borderBottom: "1px solid var(--border)",
         overflow: "hidden",
@@ -267,12 +312,12 @@ export default function Home() {
         }} />
 
         {/* Hero text — full width, left aligned */}
-        <div style={{ padding: "80px 64px", maxWidth: 1400, width: "100%", margin: "0 auto" }}>
+        <div style={{ position: "relative", zIndex: 2, padding: "20px 48px", maxWidth: 1400, width: "100%", margin: "0 auto" }}>
           <div className="animate-fade-up" style={{ maxWidth: 680 }}>
             <div style={{
               display: "inline-flex", alignItems: "center", gap: 8,
               border: "1px solid var(--border-strong)", borderRadius: 2,
-              padding: "4px 12px", marginBottom: 32,
+              padding: "4px 12px", marginBottom: 16,
             }}>
               <span className="live-dot" />
               <span style={{
@@ -286,18 +331,18 @@ export default function Home() {
             <h1 style={{
               fontSize: "clamp(5rem, 9vw, 10rem)",
               fontWeight: 900, lineHeight: 0.92,
-              marginBottom: 32, color: "var(--text)",
+              marginBottom: 20, color: "var(--text)",
             }}>
-              ACQUIRE<br />
-              THE{" "}
+              Bid Smart.<br />
+              {" "}
               <span style={{ color: "transparent", WebkitTextStroke: "2px var(--text)" }}>
-                RARE.
+                 Win Faster.
               </span>
             </h1>
 
             <p style={{
-              color: "var(--muted)", fontSize: "1rem",
-              maxWidth: 420, lineHeight: 1.7, marginBottom: 40,
+              color: "var(--muted)", fontSize: "1.15rem",
+              maxWidth: 420, lineHeight: 1.7, marginBottom: 24,
             }}>
               The premier auction platform for exclusive items.
               Real-time bidding, verified listings, and instant results.
@@ -311,108 +356,42 @@ export default function Home() {
               </Link>
               {token && role === "user" && (
                 <Link to="/products/create">
-                  <button className="btn-ghost" style={{ fontSize: "0.9rem", padding: "12px 28px" }}>
-                    List Item
+                  <button className="btn-outline-lime" style={{ fontSize: "0.9rem", padding: "12px 28px" }}>
+                    + List an Item
                   </button>
                 </Link>
               )}
               {!token && (
-                <Link to="/register">
-                  <button className="btn-ghost" style={{ fontSize: "0.9rem", padding: "12px 28px" }}>
-                    Create Account
-                  </button>
-                </Link>
+                <button className="btn-outline-lime"
+                  style={{ fontSize: "0.9rem", padding: "12px 28px" }}
+                  onClick={() => document.dispatchEvent(new CustomEvent("open-auth", { detail: "register" }))}>
+                  Start Selling →
+                </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* Floating featured card — center vertically, left of center horizontally */}
-        {featured && (
-          <Link to={`/auctions/${featured.id}`} style={{ textDecoration: "none" }}>
-            <div style={{
-              position: "absolute", top: "50%", left: "52%",
-              transform: "translateY(-50%)",
-              width: 380,
-              background: "rgba(13,13,13,0.94)",
-              backdropFilter: "blur(16px)",
-              border: "1px solid var(--border-strong)",
-              borderRadius: 4,
-              overflow: "hidden",
-              boxShadow: "0 32px 80px rgba(0,0,0,0.7)",
-              cursor: "pointer",
-              transition: "transform 0.25s ease, border-color 0.2s ease",
-            }}
-              onMouseEnter={e => e.currentTarget.style.transform = "translateY(calc(-50% - 5px))"}
-              onMouseLeave={e => e.currentTarget.style.transform = "translateY(-50%)"}
-            >
-              {/* Lot tag */}
-              <div style={{
-                position: "absolute", top: 12, left: 12, zIndex: 2,
-                background: "rgba(0,0,0,0.85)", border: "1px solid var(--border)",
-                padding: "3px 10px", borderRadius: 2,
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: "0.65rem", letterSpacing: "0.1em",
-                color: "var(--muted)", textTransform: "uppercase",
-              }}>
-                LOT #{String(featured.id).padStart(4, "0")}
-              </div>
+      {/* Hero image — full background */}
+<img src="/hero.png" alt="hero" style={{
+  position: "absolute", inset: 0,
+  width: "100%", height: "100%",
+  objectFit: "cover",
+  opacity: 1,
+  pointerEvents: "none",
+  userSelect: "none",
+  zIndex: 0,
+}} />
 
-              {/* Live badge */}
-              {featured.status === "active" && (
-                <div style={{
-                  position: "absolute", top: 12, right: 12, zIndex: 2,
-                  display: "flex", alignItems: "center", gap: 5,
-                  background: "rgba(0,0,0,0.85)", border: "1px solid var(--primary)",
-                  padding: "3px 10px", borderRadius: 2,
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: "0.65rem", fontWeight: 700, letterSpacing: "0.1em", color: "var(--primary)",
-                }}>
-                  <span className="live-dot" style={{ width: 5, height: 5 }} /> LIVE
-                </div>
-              )}
+{/* Gradient overlay so text stays readable */}
+<div style={{
+  position: "absolute", inset: 0,
+  background: "linear-gradient(to right, rgba(0,0,0,0.85) 40%, rgba(0,0,0,0.2) 100%)",
+  zIndex: 1,
+  pointerEvents: "none",
+}} />
 
-              {/* Image */}
-              <div style={{ width: "100%", height: 240, background: "var(--surface-2)", overflow: "hidden" }}>
-                {featured.product?.images?.[0] ? (
-                  <img src={`http://localhost:8000${featured.product.images[0].url}`}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "4rem", opacity: 0.15 }}>🏷</div>
-                )}
-              </div>
-
-              {/* Card body */}
-              <div style={{ padding: "18px 20px" }}>
-                <div style={{ fontSize: "0.7rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>
-                  {featured.product?.category?.name || "Featured Lot"}
-                </div>
-                <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: 14, lineHeight: 1.3 }}>
-                  {featured.product?.title}
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: 14, borderTop: "1px solid var(--border)" }}>
-                  <div>
-                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                      Current High Bid
-                    </div>
-                    <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.7rem", color: "var(--text)", lineHeight: 1 }}>
-                      ${featured.product?.current_price?.toLocaleString()}
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-                      Ends In
-                    </div>
-                    <Countdown endDate={featured.end_date} style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      fontWeight: 900, fontSize: "1.1rem", color: "var(--primary)",
-                    }} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Link>
-        )}
+        {/* Featured hero card removed per request */}
       </div>
 
       {/* ── TICKER ───────────────────────────────────────────── */}
@@ -434,8 +413,22 @@ export default function Home() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: "center", padding: 80, color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-            Loading lots...
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", overflow: "hidden" }}>
+                <div className="skeleton" style={{ height: 200, width: "100%" }} />
+                <div style={{ padding: "14px 16px" }}>
+                  <div className="skeleton" style={{ height: 13, width: "65%", marginBottom: 8 }} />
+                  <div className="skeleton" style={{ height: 10, width: "90%", marginBottom: 6 }} />
+                  <div className="skeleton" style={{ height: 10, width: "75%", marginBottom: 20 }} />
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div className="skeleton" style={{ height: 18, width: "35%" }} />
+                    <div className="skeleton" style={{ height: 18, width: "25%" }} />
+                  </div>
+                  <div className="skeleton" style={{ height: 32, width: "100%" }} />
+                </div>
+              </div>
+            ))}
           </div>
         ) : auctions.length === 0 ? (
           <div className="card" style={{ padding: 60, textAlign: "center" }}>
@@ -448,7 +441,7 @@ export default function Home() {
             display: "grid",
             gridTemplateColumns: "repeat(3, 1fr)",
             gridTemplateRows: "auto auto",
-            gap: 1,
+            gap: 16,
           }}>
 
             {/* Cell 1 — small card, row 1 col 1 */}
@@ -599,52 +592,7 @@ export default function Home() {
         </div>
       </div>
 
-      {/* ── FOOTER ───────────────────────────────────────────── */}
-      <footer style={{ borderTop: "1px solid var(--border)", padding: "48px 32px 32px" }}>
-        <div style={{ maxWidth: 1400, margin: "0 auto" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 40, marginBottom: 48 }}>
-            <div>
-              <div style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontWeight: 900, fontSize: "1.8rem",
-                color: "var(--text)", marginBottom: 16, letterSpacing: "0.02em",
-              }}>
-                BID<span style={{ color: "var(--primary)" }}>VAULT</span><span style={{ color: "var(--primary)" }}>.</span>
-              </div>
-              <p style={{ color: "var(--muted)", fontSize: "0.82rem", lineHeight: 1.7, maxWidth: 260 }}>
-                The professional auction platform for exclusive items. Real-time bidding, transparent results.
-              </p>
-            </div>
-            {[
-              { title: "Marketplace", links: ["Live Auctions", "Past Results", "Sell With Us"] },
-              { title: "Support", links: ["Authentication", "FAQ", "Contact"] },
-              { title: "Legal", links: ["Terms of Service", "Privacy Policy"] },
-            ].map(({ title, links }) => (
-              <div key={title}>
-                <div style={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontWeight: 700, fontSize: "0.72rem",
-                  letterSpacing: "0.12em", textTransform: "uppercase",
-                  color: "var(--muted)", marginBottom: 16,
-                }}>{title}</div>
-                {links.map((l) => (
-                  <div key={l} style={{ fontSize: "0.85rem", color: "var(--text-2)", marginBottom: 10, cursor: "pointer" }}>
-                    {l}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-          <div style={{
-            borderTop: "1px solid var(--border)", paddingTop: 24,
-            display: "flex", justifyContent: "space-between",
-            fontSize: "0.75rem", color: "var(--muted)",
-          }}>
-            <span>© 2025 BidVault. All rights reserved.</span>
-            <span>EST. 2025 — REAL-TIME AUCTIONS</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

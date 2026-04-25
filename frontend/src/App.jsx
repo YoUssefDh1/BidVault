@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import useAuthStore from "./store/authStore";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -9,6 +9,7 @@ import CreateProduct from "./pages/CreateProduct";
 import AdminDashboard from "./pages/AdminDashboard";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import FAQ from "./pages/FAQ";
 
 function ProtectedRoute({ children, roles }) {
   const { token, role } = useAuthStore();
@@ -17,10 +18,10 @@ function ProtectedRoute({ children, roles }) {
   return children;
 }
 
-export default function App() {
+function PageRoutes() {
+  const location = useLocation();
   return (
-    <BrowserRouter>
-      <Navbar />
+    <div key={location.pathname} className="page-enter">
       <Routes>
         <Route path="/"             element={<Home />} />
         <Route path="/login"        element={<Navigate to="/" replace />} />
@@ -47,8 +48,18 @@ export default function App() {
           </ProtectedRoute>
         } />
 
+        <Route path="/faq" element={<FAQ />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Navbar />
+      <PageRoutes />
     </BrowserRouter>
   );
 }

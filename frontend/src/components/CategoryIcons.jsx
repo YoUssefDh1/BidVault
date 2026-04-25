@@ -1,6 +1,6 @@
 const s = (active) => ({
-  width: 22, height: 22, viewBox: "0 0 24 24", fill: "none",
-  stroke: active ? "var(--primary)" : "var(--muted)",
+  width: 18, height: 18, viewBox: "0 0 24 24", fill: "none",
+  stroke: active ? "var(--primary)" : "var(--text-2)",
   strokeWidth: "1.8", strokeLinecap: "round", strokeLinejoin: "round",
   style: { transition: "stroke 0.2s ease" },
 });
@@ -49,12 +49,14 @@ const CAT_SVG_ICONS = {
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
   ),
-  "Real Estate": ({ active } = {}) => (
-    <svg {...s(active)}>
-      <path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/>
-      <path d="M9 21V12h6v9"/>
-    </svg>
-  ),
+"Real Estate": ({ active } = {}) => (
+  <svg {...s(active)}>
+    <rect x="3" y="3" width="18" height="11" rx="1"/>
+    <path d="M8 3v11M12 7h4"/>
+    <path d="M9 17l3 4 3-4"/>
+    <path d="M12 14v7"/>
+  </svg>
+),
   "Books & Manuscripts": ({ active } = {}) => (
     <svg {...s(active)}>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>

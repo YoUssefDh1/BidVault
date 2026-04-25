@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import api from "../api";
 import CategoryBar from "../components/CategoryBar";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
+import Footer from "../components/Footer";
 
 export default function CategoryPage() {
   const { id } = useParams();
@@ -140,6 +141,7 @@ export default function CategoryPage() {
           </div>
         )}
       </div>
+      <Footer />
     </>
   );
 }

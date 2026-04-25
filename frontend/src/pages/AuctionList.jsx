@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import api from "../api";
 import BackToHome from "../components/BackToHome";
 import FavouriteButton from "../components/FavouriteButton";
+import Footer from "../components/Footer";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
@@ -39,17 +40,23 @@ function AuctionCard({ auction }) {
     <div className="card" style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}>
       {/* Image */}
       <div style={{
-        width: "100%", height: 180, background: "var(--surface-2)",
+        width: "100%", height: 210, background: "var(--surface-2)",
         display: "flex", alignItems: "center", justifyContent: "center",
         overflow: "hidden", position: "relative", flexShrink: 0,
       }}>
         {product.images?.[0] ? (
-          <img src={`http://localhost:8000${product.images[0].url}`}
+          <img src={`${api.defaults.baseURL}${product.images[0].url}`}
             alt={product.title}
             style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
           <span style={{ fontSize: "2.5rem", opacity: 0.2 }}>🏷</span>
         )}
+        {/* Bottom gradient so badges stay readable over any image */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: 56,
+          background: "linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
         {auction.status === "active" && (
           <div style={{
             position: "absolute", top: 8, left: 8,
@@ -69,18 +76,17 @@ function AuctionCard({ auction }) {
       </div>
 
       {/* Body */}
-      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", flex: 1 }}>
+      <div style={{ padding: "16px 18px", display: "flex", flexDirection: "column", flex: 1 }}>
         {product.category && (
           <div style={{
-            fontSize: "0.62rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif",
-            letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 3,
+            fontSize: "0.68rem", color: "var(--text-secondary)", marginBottom: 4,
           }}>{product.category.name}</div>
         )}
-        <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: 3, lineHeight: 1.2 }}>
+        <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "var(--text)", marginBottom: 4, lineHeight: 1.2 }}>
           {product.title}
         </h3>
         <p style={{
-          fontSize: "0.76rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.5, flex: 1,
+          fontSize: "0.82rem", color: "var(--muted)", marginBottom: 12, lineHeight: 1.6, flex: 1,
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }} dangerouslySetInnerHTML={{ __html: product.description || "" }} />
 
@@ -89,14 +95,14 @@ function AuctionCard({ auction }) {
           borderTop: "1px solid var(--border)", paddingTop: 10, marginBottom: 10,
         }}>
           <div>
-            <div style={{ fontSize: "0.6rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'Barlow Condensed', sans-serif" }}>Current Bid</div>
+            <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)" }}>Current Bid</div>
             <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "1.15rem", color: "var(--text)" }}>
               ${product.current_price?.toLocaleString()}
             </div>
           </div>
           {auction.status === "active" && (
             <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: "0.6rem", color: "var(--muted)", letterSpacing: "0.1em", textTransform: "uppercase", fontFamily: "'Barlow Condensed', sans-serif" }}>Ends In</div>
+              <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)" }}>Ends In</div>
               <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 800, fontSize: "0.95rem" }}>
                 <Countdown endDate={auction.end_date} />
               </div>
@@ -167,7 +173,7 @@ export default function AuctionList() {
   }, [search, statusFilter, categoryFilter, subcategoryFilter, minPrice, maxPrice, sortBy]);
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px" }}>
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 32px 0" }}>
         <BackToHome />
 
       {/* Top bar */}
@@ -177,7 +183,7 @@ export default function AuctionList() {
       }}>
         <h1 style={{ fontSize: "2rem", fontWeight: 900 }}>
           {search ? `Results for "${search}"` : "Trending Lots"}
-          <span style={{ fontSize: "1rem", color: "var(--muted)", marginLeft: 14, fontFamily: "'Barlow', sans-serif", fontWeight: 400, textTransform: "none" }}>
+          <span style={{ fontSize: "1rem", color: "var(--muted)", marginLeft: 14, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", fontWeight: 400, textTransform: "none" }}>
             {auctions.length} results
           </span>
         </h1>
@@ -189,12 +195,12 @@ export default function AuctionList() {
         )}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 0 }}>
+      <div className="auction-layout">
 
         {/* ── Sidebar ── */}
-        <div style={{
+        <div className="auction-sidebar" style={{
           borderRight: "1px solid var(--border)",
-          padding: "28px 24px 28px 0",
+          padding: "32px 28px 32px 0",
           minHeight: "70vh",
         }}>
           {/* Categories */}
@@ -370,10 +376,24 @@ export default function AuctionList() {
         </div>
 
         {/* ── Grid ── */}
-        <div style={{ padding: "28px 0 28px 28px" }}>
+        <div style={{ padding: "32px 0 32px 32px" }}>
           {loading ? (
-            <div style={{ textAlign: "center", padding: 80, color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: "0.1em", textTransform: "uppercase" }}>
-              Loading lots...
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 24 }}>
+              {[...Array(9)].map((_, i) => (
+                <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
+                  <div className="skeleton" style={{ height: 180, flexShrink: 0 }} />
+                  <div style={{ padding: "12px 14px", flex: 1 }}>
+                    <div className="skeleton" style={{ height: 10, width: "40%", marginBottom: 6 }} />
+                    <div className="skeleton" style={{ height: 14, width: "85%", marginBottom: 6 }} />
+                    <div className="skeleton" style={{ height: 10, width: "70%", marginBottom: 16 }} />
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, paddingTop: 10, borderTop: "1px solid var(--border)" }}>
+                      <div className="skeleton" style={{ height: 18, width: "38%" }} />
+                      <div className="skeleton" style={{ height: 18, width: "28%" }} />
+                    </div>
+                    <div className="skeleton" style={{ height: 34, width: "100%" }} />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : auctions.length === 0 ? (
             <div className="card" style={{ padding: 60, textAlign: "center" }}>
@@ -384,8 +404,8 @@ export default function AuctionList() {
           ) : (
             <div className="animate-stagger" style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-              gap: 1,
+              gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+              gap: 24,
             }}>
               {auctions.map((a) => <AuctionCard key={a.id} auction={a} />)}
             </div>
@@ -393,6 +413,7 @@ export default function AuctionList() {
         </div>
 
       </div>
+      <Footer />
     </div>
   );
 }

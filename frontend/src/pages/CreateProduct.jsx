@@ -4,6 +4,7 @@ import api from "../api";
 import BackToHome from "../components/BackToHome";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import Footer from "../components/Footer";
 
 // ── Step config ───────────────────────────────────────────────
 const STEPS = [
@@ -585,6 +586,7 @@ export default function CreateProduct() {
         isDangerous={dialogType === "removeImage"}
         isLoading={loading}
       />
+      <Footer />
     </div>
   );
 }

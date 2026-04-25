@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import api from "../api";
 import useAuthStore from "../store/authStore";
 import BackToHome from "../components/BackToHome";
+import Footer from "../components/Footer";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 // Country list
@@ -599,6 +600,7 @@ export default function Profile() {
         confirmText="Remove"
         isDangerous={true}
       />
+      <Footer />
     </div>
   );
 }

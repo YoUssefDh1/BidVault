@@ -4,6 +4,7 @@ import api from "../api";
 import useAuthStore from "../store/authStore";
 import BackToHome from "../components/BackToHome";
 import FavouriteButton from "../components/FavouriteButton";
+import Footer from "../components/Footer";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
@@ -124,8 +125,27 @@ export default function AuctionDetail() {
   };
 
   if (loading) return (
-    <div style={{ textAlign: "center", padding: 100, color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-      Loading lot...
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 32px 0" }}>
+      <div style={{ padding: "16px 0", borderBottom: "1px solid var(--border)", marginBottom: 32 }}>
+        <div className="skeleton" style={{ height: 12, width: 200 }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 420px", gap: 48, alignItems: "start" }}>
+        <div>
+          <div className="skeleton" style={{ width: "100%", aspectRatio: "4/3", marginBottom: 32 }} />
+          <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+            <div className="skeleton" style={{ height: 22, width: 64 }} />
+            <div className="skeleton" style={{ height: 22, width: 88 }} />
+          </div>
+          <div className="skeleton" style={{ height: 38, width: "72%", marginBottom: 16 }} />
+          <div className="skeleton" style={{ height: 12, width: "100%", marginBottom: 8 }} />
+          <div className="skeleton" style={{ height: 12, width: "92%", marginBottom: 8 }} />
+          <div className="skeleton" style={{ height: 12, width: "78%", marginBottom: 28 }} />
+          <div className="skeleton" style={{ height: 60 }} />
+        </div>
+        <div>
+          <div className="skeleton" style={{ height: 440, borderRadius: 2 }} />
+        </div>
+      </div>
     </div>
   );
   if (!auction) return null;
@@ -134,7 +154,8 @@ export default function AuctionDetail() {
   const isActive = auction.status === "active";
 
   return (
-    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 32px" }}>
+    <>
+    <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 32px 0" }}>
         <BackToHome />
 
       {/* Breadcrumb */}
@@ -160,7 +181,7 @@ export default function AuctionDetail() {
             marginBottom: 32, position: "relative",
           }}>
             {product.images?.[0] ? (
-              <img src={`http://localhost:8000${product.images[0].url}`}
+              <img src={`${api.defaults.baseURL}${product.images[0].url}`}
                 alt={product.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               <span style={{ fontSize: "6rem", opacity: 0.15 }}>🏷</span>
@@ -204,7 +225,7 @@ export default function AuctionDetail() {
               fontWeight: 900, color: "var(--bg)", fontSize: "1rem",
             }}>{product.seller?.name?.[0]?.toUpperCase()}</div>
             <div>
-              <div style={{ fontSize: "0.65rem", color: "var(--muted)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'Barlow Condensed', sans-serif" }}>Seller</div>
+              <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)" }}>Seller</div>
               <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{product.seller?.name}</div>
             </div>
           </div>
@@ -213,7 +234,7 @@ export default function AuctionDetail() {
           <div style={{ marginTop: 36 }}>
             <h2 style={{ fontSize: "1.3rem", fontWeight: 900, marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid var(--border)" }}>
               Bid History
-              <span style={{ fontSize: "0.9rem", color: "var(--muted)", marginLeft: 10, fontFamily: "'Barlow', sans-serif", fontWeight: 400, textTransform: "none" }}>
+              <span style={{ fontSize: "0.9rem", color: "var(--muted)", marginLeft: 10, fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif", fontWeight: 400, textTransform: "none" }}>
                 ({bids.length} bids)
               </span>
             </h2>
@@ -303,7 +324,7 @@ export default function AuctionDetail() {
             <div style={{ padding: 24 }}>
               {/* Current price */}
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: "0.65rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 4 }}>
+                <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginBottom: 4 }}>
                   Current Bid
                 </div>
                 <div style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 900, fontSize: "3rem", color: "var(--text)", letterSpacing: "-0.02em", lineHeight: 1 }}>
@@ -317,7 +338,7 @@ export default function AuctionDetail() {
               {/* Countdown */}
               {isActive && (
                 <div style={{ padding: "14px 16px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: 2, marginBottom: 20 }}>
-                  <div style={{ fontSize: "0.65rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 6 }}>
+                  <div style={{ fontSize: "0.68rem", color: "var(--text-secondary)", marginBottom: 6 }}>
                     Ends In
                   </div>
                   <Countdown endDate={auction.end_date} />
@@ -378,7 +399,7 @@ export default function AuctionDetail() {
                   { label: "Total Bids", value: bids.length },
                 ].map(({ label, value }) => (
                   <div key={label} style={{ display: "flex", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid var(--border)", fontSize: "0.82rem" }}>
-                    <span style={{ color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.08em", fontSize: "0.72rem" }}>{label}</span>
+                    <span style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>{label}</span>
                     <span style={{ fontWeight: 600 }}>{value}</span>
                   </div>
                 ))}
@@ -389,5 +410,7 @@ export default function AuctionDetail() {
 
       </div>
     </div>
+    <Footer />
+    </>
   );
 }
