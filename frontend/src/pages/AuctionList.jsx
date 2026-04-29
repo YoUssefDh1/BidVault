@@ -4,6 +4,7 @@ import api from "../api";
 import BackToHome from "../components/BackToHome";
 import FavouriteButton from "../components/FavouriteButton";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTopButton";
 
 function Countdown({ endDate }) {
   const [time, setTime] = useState("");
@@ -413,6 +414,7 @@ export default function AuctionList() {
         </div>
 
       </div>
+      <ScrollToTopButton />
       <Footer />
     </div>
   );

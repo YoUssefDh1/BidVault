@@ -4,6 +4,7 @@ import api from "../api";
 import useAuthStore from "../store/authStore";
 import BackToHome from "../components/BackToHome";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTopButton";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 // Country list
@@ -600,6 +601,7 @@ export default function Profile() {
         confirmText="Remove"
         isDangerous={true}
       />
+      <ScrollToTopButton />
       <Footer />
     </div>
   );

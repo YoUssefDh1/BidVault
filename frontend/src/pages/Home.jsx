@@ -5,6 +5,7 @@ import useAuthStore from "../store/authStore";
 import CAT_SVG_ICONS from "../components/CategoryIcons";
 import CategoryBar from "../components/CategoryBar";
 import Footer from "../components/Footer";
+import ScrollToTopButton from "../components/ScrollToTopButton";
 
 // CategoryBar is imported from ../components/CategoryBar
 
@@ -592,6 +593,7 @@ export default function Home() {
         </div>
       </div>
 
+      <ScrollToTopButton />
       <Footer />
     </div>
   );
