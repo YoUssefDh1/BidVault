@@ -252,6 +252,7 @@ export default function CreateProduct() {
   const [title, setTitle]               = useState("");
   const [description, setDescription]   = useState("");
   const [price, setPrice]               = useState("");
+  const [bidStep, setBidStep]           = useState("");
   const [categoryId, setCategoryId]     = useState("");
   const [subcategoryId, setSubcategoryId] = useState("");
   const [startDate, setStartDate]       = useState("");
@@ -314,6 +315,7 @@ export default function CreateProduct() {
         end_date:   new Date(endDate).toISOString(),
         category_id:    categoryId    ? parseInt(categoryId)    : null,
         subcategory_id: subcategoryId ? parseInt(subcategoryId) : null,
+        bid_step: bidStep ? parseFloat(bidStep) / 100 : null,
       });
       for (const img of images) {
         const fd = new FormData();
@@ -453,6 +455,40 @@ export default function CreateProduct() {
                 <input className="input" type="number" min="0" step="0.01"
                   placeholder="0.00" value={price} onChange={(e) => setPrice(e.target.value)} />
               </div>
+
+              <div>
+                <FieldLabel>Minimum Bid Increment</FieldLabel>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {["", "5", "10", "15", "20"].map((val) => (
+                    <button key={val} type="button"
+                      onClick={() => setBidStep(val)}
+                      style={{
+                        padding: "8px 16px",
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontWeight: 700, fontSize: "0.82rem",
+                        letterSpacing: "0.06em", cursor: "pointer",
+                        borderRadius: 2, border: "1px solid",
+                        borderColor: bidStep === val ? "var(--primary)" : "var(--border-strong)",
+                        background: bidStep === val ? "var(--primary-soft)" : "transparent",
+                        color: bidStep === val ? "var(--primary)" : "var(--text-2)",
+                        transition: "all 0.15s",
+                      }}>
+                      {val === "" ? "No minimum" : `${val}%`}
+                    </button>
+                  ))}
+                  <input className="input" type="number" min="1" max="100" step="1"
+                    placeholder="Custom %"
+                    value={["", "5", "10", "15", "20"].includes(bidStep) ? "" : bidStep}
+                    onChange={(e) => setBidStep(e.target.value)}
+                    style={{ width: 110, padding: "8px 12px", fontSize: "0.82rem" }} />
+                </div>
+                <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 6 }}>
+                  {bidStep
+                    ? `Each bid must be at least ${bidStep}% above the current price.`
+                    : "Bidders only need to beat the current price by any amount."}
+                </div>
+              </div>
+
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                 <div>
                   <FieldLabel required>Auction Start</FieldLabel>
@@ -514,6 +550,10 @@ export default function CreateProduct() {
                   <div>
                     <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Duration</div>
                     <div style={{ fontWeight: 600 }}>{days} day{days !== 1 ? "s" : ""}</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Bid Increment</div>
+                    <div style={{ fontWeight: 600 }}>{bidStep ? `${bidStep}%` : "None"}</div>
                   </div>
                   <div>
                     <div style={{ fontSize: "0.6rem", color: "var(--muted)", fontFamily: "'Barlow Condensed', sans-serif", textTransform: "uppercase", letterSpacing: "0.1em" }}>Photos</div>

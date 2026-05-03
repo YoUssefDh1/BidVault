@@ -55,26 +55,49 @@ async def place_bid(
         raise HTTPException(status_code=400, detail="This auction is not active")
     if auction.product.seller_id == user.id:
         raise HTTPException(status_code=400, detail="You cannot bid on your own product")
-    if data.amount <= auction.product.current_price:
+
+    product = auction.product
+
+    # Enforce minimum bid increment
+    if product.bid_step and product.bid_step > 0:
+        min_bid = product.current_price * (1 + product.bid_step)
+        if data.amount < min_bid:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Minimum bid is ${min_bid:.2f} ({int(product.bid_step * 100)}% above current price)"
+            )
+    elif data.amount <= product.current_price:
         raise HTTPException(
             status_code=400,
-            detail=f"Bid must be higher than current price ({auction.product.current_price})"
+            detail=f"Bid must be higher than current price ({product.current_price})"
         )
 
+    # Capture current highest bidder BEFORE adding new bid (avoids autoflush bug)
+    previous_bids = db.query(Bid).filter(
+        Bid.auction_id == data.auction_id
+    ).order_by(Bid.amount.desc()).all()
+    prev_highest_bidder = previous_bids[0].bidder if previous_bids else None
+
+    # Place the bid
     bid = Bid(amount=data.amount, auction_id=data.auction_id, bidder_id=user.id, is_valid=True)
     db.add(bid)
-    auction.product.current_price = data.amount
+    product.current_price = data.amount
 
-    # Notify previous highest bidder
-    previous_bids = db.query(Bid).filter(Bid.auction_id == data.auction_id).order_by(Bid.amount.desc()).all()
-    if previous_bids:
-        prev_winner = previous_bids[0].bidder
-        if prev_winner.id != user.id:
-            db.add(Notification(
-                message=f"You've been outbid on '{auction.product.title}'! New price: ${data.amount}",
-                user_id=prev_winner.id,
-                status="unread",
-            ))
+    # Notify the outbid bidder
+    if prev_highest_bidder and prev_highest_bidder.id != user.id:
+        db.add(Notification(
+            message=f"You've been outbid on '{product.title}'! New highest bid: ${data.amount:,.2f}",
+            user_id=prev_highest_bidder.id,
+            status="unread",
+        ))
+
+    # Notify the seller about the new bid
+    if product.seller_id != user.id:
+        db.add(Notification(
+            message=f"New bid on your listing '{product.title}': ${data.amount:,.2f} by {user.name}",
+            user_id=product.seller_id,
+            status="unread",
+        ))
 
     db.commit()
     db.refresh(bid)

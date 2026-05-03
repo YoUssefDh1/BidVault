@@ -67,7 +67,11 @@ export default function AuctionDetail() {
       setAuction(a);
       setCurrentPrice(a.product.current_price);
       setBids(b);
-      setBidAmount((a.product.current_price + 1).toString());
+      const step = a.product.bid_step;
+      const suggested = step
+        ? parseFloat((a.product.current_price * (1 + step)).toFixed(2))
+        : parseFloat((a.product.current_price + 1).toFixed(2));
+      setBidAmount(suggested.toString());
     }).catch(() => navigate("/auctions"))
       .finally(() => setLoading(false));
   }, [id]);
@@ -153,6 +157,9 @@ export default function AuctionDetail() {
 
   const product = auction.product;
   const isActive = auction.status === "active";
+  const minBid = product.bid_step
+    ? parseFloat((currentPrice * (1 + product.bid_step)).toFixed(2))
+    : parseFloat((currentPrice + 0.01).toFixed(2));
 
   return (
     <>
@@ -356,10 +363,15 @@ export default function AuctionDetail() {
                       <div>
                         <label>Your Bid ($)</label>
                         <input className="input" type="number"
-                          value={bidAmount} min={currentPrice + 0.01} step="0.01"
+                          value={bidAmount} min={minBid} step="0.01"
                           onChange={(e) => setBidAmount(e.target.value)} />
-                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 4 }}>
-                          Min: ${(currentPrice + 0.01).toFixed(2)}
+                        <div style={{ fontSize: "0.72rem", color: "var(--muted)", marginTop: 4, display: "flex", justifyContent: "space-between" }}>
+                          <span>Min: ${minBid.toFixed(2)}</span>
+                          {product.bid_step && (
+                            <span style={{ color: "var(--text-secondary)" }}>
+                              {parseInt(product.bid_step * 100)}% min increment
+                            </span>
+                          )}
                         </div>
                       </div>
                       <button className="btn-primary" onClick={placeBid} disabled={bidLoading}

@@ -92,6 +92,8 @@ class Product(Base):
     status         = Column(String,  default="pending")  # pending|active|closed
     created_at     = Column(DateTime, default=datetime.utcnow)
 
+    bid_step       = Column(Float,   nullable=True)   # minimum increment as decimal, e.g. 0.10 = 10%
+
     seller_id      = Column(Integer, ForeignKey("users.id"),         nullable=False)
     category_id    = Column(Integer, ForeignKey("categories.id"),    nullable=True)
     subcategory_id = Column(Integer, ForeignKey("subcategories.id"), nullable=True)

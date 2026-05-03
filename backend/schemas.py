@@ -116,6 +116,7 @@ class ProductCreate(BaseModel):
     end_date: datetime
     category_id: Optional[int] = None
     subcategory_id: Optional[int] = None
+    bid_step: Optional[float] = None   # e.g. 0.10 = 10% minimum increment
 
 class ProductUpdate(BaseModel):
     title: Optional[str] = None
@@ -125,6 +126,7 @@ class ProductUpdate(BaseModel):
     end_date: Optional[datetime] = None
     category_id: Optional[int] = None
     subcategory_id: Optional[int] = None
+    bid_step: Optional[float] = None
 
 class ProductResponse(BaseModel):
     id: int
@@ -136,6 +138,7 @@ class ProductResponse(BaseModel):
     end_date: datetime
     status: str
     created_at: datetime
+    bid_step: Optional[float] = None
     seller: UserResponse
     category: Optional[CategoryResponse]
     images: List[ImageResponse] = []
