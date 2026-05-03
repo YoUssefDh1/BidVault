@@ -4,7 +4,7 @@ import api from "../api";
 import useAuthStore from "../store/authStore";
 
 export default function NotificationBell() {
-  const { token } = useAuthStore();
+  const { token, role } = useAuthStore();
   const [notifs, setNotifs]   = useState([]);
   const [open, setOpen]       = useState(false);
   const [loading, setLoading] = useState(false);
@@ -15,7 +15,7 @@ export default function NotificationBell() {
   const unread = notifs.filter((n) => n.status === "unread").length;
 
   const fetchNotifs = async () => {
-    if (!token) return;
+    if (!token || role !== "user") return;
     setLoading(true);
     try {
       const { data } = await api.get("/users/me/notifications");
@@ -32,10 +32,10 @@ export default function NotificationBell() {
   }, [token]);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || role !== "user") return;
     const id = setInterval(fetchNotifs, 30000);
     return () => clearInterval(id);
-  }, [token]);
+  }, [token, role]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -70,7 +70,7 @@ export default function NotificationBell() {
     );
   };
 
-  if (!token) return null;
+  if (!token || role !== "user") return null;
 
   return (
     <>

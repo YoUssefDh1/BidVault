@@ -111,7 +111,6 @@ export default function Navbar() {
         <div style={{ display: "flex", alignItems: "center", gap: 2, flexShrink: 0 }}>
           {[
             { to: "/auctions", label: "Live Auctions", show: true },
-            { to: "/admin", label: "Dashboard", show: role === "admin" },
           ].filter(l => l.show).map(({ to, label }) => (
             <Link key={to} to={to} style={{ textDecoration: "none" }}>
               <span style={{
@@ -270,6 +269,20 @@ export default function Navbar() {
               ?
             </div>
           </Link>
+
+          {/* Admin dashboard button */}
+          {role === "admin" && (
+            <Link to="/admin" style={{ textDecoration: "none" }}>
+              <button className="btn-outline-lime"
+                style={{ padding: "7px 16px", fontSize: "0.8rem", display: "flex", alignItems: "center", gap: 6 }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                  <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
+                </svg>
+                Dashboard
+              </button>
+            </Link>
+          )}
 
           {/* Sell CTA — visible to all non-admin users */}
           {role !== "admin" && (

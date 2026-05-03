@@ -4,18 +4,18 @@ import useAuthStore from "../store/authStore";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 export default function FavouriteButton({ auctionId, size = 20 }) {
-  const { token } = useAuthStore();
+  const { token, role } = useAuthStore();
   const [saved, setSaved]     = useState(false);
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [action, setAction] = useState(null);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || role !== "user") return;
     api.get("/users/me/favourites/ids")
       .then(({ data }) => setSaved(data.includes(auctionId)))
       .catch(() => {});
-  }, [token, auctionId]);
+  }, [token, role, auctionId]);
 
   const handleToggleClick = (e) => {
     e.preventDefault();
@@ -42,7 +42,7 @@ export default function FavouriteButton({ auctionId, size = 20 }) {
     finally { setLoading(false); }
   };
 
-  if (!token) return null;
+  if (!token || role !== "user") return null;
 
   return (
     <>
